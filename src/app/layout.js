@@ -1,5 +1,6 @@
 import "./globals.css";
 import "./auth.css";
+import "./(admin)/admin-layout.css";
 import "./(admin)/kasir/kasir.css";
 import "./(admin)/hutang/hutang.css";
 import "./(admin)/laporan/laporan.css";

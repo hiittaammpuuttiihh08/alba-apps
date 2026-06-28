@@ -1,0 +1,121 @@
+.admin-layout {
+   display: grid;
+   grid-template-columns: 280px 1fr;
+   min-height: 100vh;
+   background: var(--bg);
+}
+
+.admin-layout__content {
+   display: flex;
+   flex-direction: column;
+   min-height: 100vh;
+}
+
+.admin-layout__main {
+   flex: 1;
+   padding: 2rem 2rem 3rem;
+}
+
+.admin-sidebar {
+   background: var(--surface);
+   border-right: 1px solid var(--border);
+   padding: 2rem 1.5rem;
+   min-height: 100vh;
+   display: flex;
+   flex-direction: column;
+   gap: 1.5rem;
+}
+
+.admin-sidebar__brand {
+   font-size: 1.25rem;
+   font-weight: 800;
+   color: var(--accent);
+   margin-bottom: 0.75rem;
+   letter-spacing: 0.08em;
+}
+
+.admin-sidebar__nav {
+   display: grid;
+   gap: 0.5rem;
+}
+
+.admin-sidebar__link {
+   display: inline-flex;
+   align-items: center;
+   width: 100%;
+   padding: 0.95rem 1rem;
+   border-radius: 16px;
+   text-decoration: none;
+   color: var(--text-muted);
+   background: transparent;
+   font-weight: 600;
+   transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.admin-sidebar__link:hover,
+.admin-sidebar__link:focus {
+   background: var(--surface-soft);
+   color: var(--text);
+}
+
+.admin-sidebar__link--active {
+   background: var(--accent);
+   color: #fff;
+   box-shadow: inset 4px 0 0 rgba(255, 255, 255, 0.2);
+}
+
+.admin-layout .app-header {
+   background: var(--surface);
+   color: var(--text);
+   border-bottom: 1px solid var(--border);
+   padding: 1.5rem 2rem;
+   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+}
+
+.admin-layout .app-header__title {
+   font-size: 0.95rem;
+   letter-spacing: 0.12em;
+   text-transform: uppercase;
+   color: var(--text-muted);
+}
+
+.admin-layout__main {
+   background: var(--surface);
+   box-shadow: 0 20px 60px rgba(15, 23, 42, 0.05);
+}
+
+.admin-layout__main h1,
+.admin-layout__main h2,
+.admin-layout__main h3 {
+   color: var(--text);
+   margin-bottom: 0.75rem;
+}
+
+.admin-layout__main h1 {
+   font-size: 2rem;
+}
+
+.admin-layout__main p {
+   color: var(--text-muted);
+   margin-bottom: 1.5rem;
+}
+
+.metric-card {
+   border-radius: 24px;
+   padding: 1.5rem;
+   background: var(--surface-soft);
+   border: 1px solid var(--border);
+   box-shadow: 0 22px 60px rgba(15, 23, 42, 0.04);
+}
+
+.metric-card__label {
+   color: var(--text-muted);
+   font-size: 0.95rem;
+   margin-bottom: 0.75rem;
+}
+
+.metric-card__value {
+   color: var(--text);
+   font-size: 2rem;
+   font-weight: 700;
+}

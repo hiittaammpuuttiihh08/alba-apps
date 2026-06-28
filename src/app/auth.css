@@ -59,11 +59,20 @@
    border: none;
    cursor: pointer;
    font-weight: 700;
+   transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.btn:hover {
+   transform: translateY(-1px);
 }
 
 .btn--primary {
-   background: #0ea5a4;
+   background: #5b61ff;
    color: #fff;
+}
+
+.btn--primary:hover {
+   background: #4249db;
 }
 
 .btn--secondary {
@@ -71,14 +80,19 @@
    color: #0f172a;
 }
 
+.btn--secondary:hover {
+   background: #cbd5e1;
+}
+
 .app-header {
    width: 100%;
-   background: #0f172a;
-   color: #fff;
+   background: #fff;
+   color: #0f172a;
    padding: 1rem 2rem;
    display: flex;
    justify-content: space-between;
    align-items: center;
+   border-bottom: 1px solid #e2e8f0;
 }
 
 .page-loading {
@@ -87,13 +101,6 @@
    place-items: center;
    color: #334155;
    font-size: 1rem;
-}
-
-.app-header {
-   width: 100%;
-   background: #0f172a;
-   color: #fff;
-   padding: 1rem 2rem;
 }
 
 .app-header__title {
