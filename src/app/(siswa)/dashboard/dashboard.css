@@ -1,0 +1,153 @@
+.student-dashboard {
+   padding: 20px;
+   display: flex;
+   flex-direction: column;
+   gap: 24px;
+}
+
+.student-dashboard__top {
+   display: flex;
+   flex-wrap: wrap;
+}
+
+.dashboard-card {
+   background: #fff;
+   border: 1px solid #e5e7eb;
+   border-radius: 14px;
+   padding: 20px;
+   width: 100%;
+   max-width: 560px;
+   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+}
+
+.dashboard-card__heading {
+   font-size: 18px;
+   font-weight: 700;
+   margin-bottom: 14px;
+}
+
+.dashboard-card__loading,
+.dashboard-card__empty {
+   color: #6b7280;
+}
+
+.dashboard-card__content {
+   display: flex;
+   flex-direction: column;
+   gap: 12px;
+}
+
+.dashboard-card__field {
+   display: flex;
+   justify-content: space-between;
+   gap: 8px;
+   font-size: 15px;
+}
+
+.dashboard-card__label {
+   color: #6b7280;
+}
+
+.dashboard-card__debt {
+   font-size: 16px;
+   font-weight: 700;
+}
+
+.dashboard-card__debt--warning {
+   color: #b91c1c;
+}
+
+.dashboard-card__debt--ok {
+   color: #047857;
+}
+
+.product-section,
+.transaction-section {
+   display: flex;
+   flex-direction: column;
+   gap: 12px;
+}
+
+.section-header {
+   display: flex;
+   flex-direction: column;
+   gap: 6px;
+}
+
+.section-header__title {
+   margin: 0;
+   font-size: 20px;
+}
+
+.section-header__subtitle {
+   margin: 0;
+   color: #6b7280;
+}
+
+.product-grid {
+   display: grid;
+   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+   gap: 14px;
+}
+
+.product-grid__empty {
+   padding: 16px;
+   color: #6b7280;
+}
+
+.product-card.product-card--small {
+   border: 1px solid #e5e7eb;
+   border-radius: 12px;
+   padding: 16px;
+   display: flex;
+   flex-direction: column;
+   gap: 10px;
+   background: #fff;
+}
+
+.product-card__name {
+   font-weight: 600;
+}
+
+.product-card__price {
+   color: #065f46;
+   font-weight: 700;
+}
+
+.product-card__stok {
+   font-size: 12px;
+   color: #6b7280;
+}
+
+.transaction-table-wrap {
+   overflow-x: auto;
+   border: 1px solid #e5e7eb;
+   border-radius: 10px;
+   background: #fff;
+}
+
+.transaction-table {
+   width: 100%;
+   border-collapse: collapse;
+}
+
+.transaction-table__head {
+   padding: 12px;
+   text-align: left;
+   background: #f9fafb;
+   border-bottom: 1px solid #e5e7eb;
+}
+
+.transaction-table__row {
+   border-bottom: 1px solid #f3f4f6;
+}
+
+.transaction-table__cell {
+   padding: 12px;
+}
+
+.transaction-table__empty {
+   padding: 20px;
+   text-align: center;
+   color: #6b7280;
+}

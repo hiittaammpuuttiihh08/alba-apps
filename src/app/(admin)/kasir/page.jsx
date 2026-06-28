@@ -1,0 +1,193 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { createClient } from "@/utils/supabase";
+
+const supabase = createClient();
+
+export default function KasirPage() {
+   const [products, setProducts] = useState([]);
+   const [siswa, setSiswa] = useState([]);
+   const [selectedSiswa, setSelectedSiswa] = useState("");
+   const [cart, setCart] = useState([]);
+   const [paymentMethod, setPaymentMethod] = useState("Tunai");
+   const [loading, setLoading] = useState(false);
+
+   useEffect(() => {
+      fetchAll();
+   }, []);
+
+   async function fetchAll() {
+      const { data: produk } = await supabase.from("produk").select("id,nama_produk,harga,stok");
+      const { data: listSiswa } = await supabase.from("siswa").select("nis,nama_siswa,kelas,total_hutang");
+      setProducts(produk ?? []);
+      setSiswa(listSiswa ?? []);
+   }
+
+   function addToCart(p) {
+      if (!p.stok || p.stok <= 0) return;
+      setCart((prev) => {
+         const existing = prev.find((i) => i.id === p.id);
+         if (existing) {
+            return prev.map((i) => (i.id === p.id ? { ...i, qty: Math.min(i.qty + 1, p.stok) } : i));
+         }
+         return [...prev, { id: p.id, nama: p.nama_produk, harga: p.harga, qty: 1, stok: p.stok }];
+      });
+   }
+
+   function changeQty(id, delta) {
+      setCart((prev) => {
+         return prev
+            .map((i) => {
+               if (i.id !== id) return i;
+               const newQty = i.qty + delta;
+               return { ...i, qty: Math.max(0, Math.min(newQty, i.stok)) };
+            })
+            .filter((i) => i.qty > 0);
+      });
+   }
+
+   const total = cart.reduce((s, i) => s + i.harga * i.qty, 0);
+
+   async function handleProcess() {
+      if (!selectedSiswa) return alert("Pilih siswa terlebih dahulu");
+      if (cart.length === 0) return alert("Keranjang kosong");
+      setLoading(true);
+      try {
+         // create transaksi (generate simple id)
+         const trxId = `trx_${Date.now()}`;
+         const { data: transaksiData, error: tErr } = await supabase
+            .from("transaksi")
+            .insert({
+               id: trxId,
+               nis_siswa: selectedSiswa,
+               metode_pembayaran: paymentMethod,
+               status_pembayaran: paymentMethod === "Hutang" ? "Belum Lunas" : "Lunas",
+               total_bayar: total,
+            })
+            .select()
+            .single();
+         if (tErr) throw tErr;
+
+         const transaksiId = transaksiData.id ?? trxId;
+
+         // insert detail_transaksi (schema uses `jumlah`)
+         const details = cart.map((it) => ({
+            transaksi_id: transaksiId,
+            produk_id: it.id,
+            jumlah: it.qty,
+         }));
+         const { error: dErr } = await supabase.from("detail_transaksi").insert(details);
+         if (dErr) throw dErr;
+
+         // update produk stok
+         for (const it of cart) {
+            const prod = products.find((p) => p.id === it.id);
+            const newStok = (prod?.stok ?? 0) - it.qty;
+            await supabase.from("produk").update({ stok: newStok }).eq("id", it.id);
+         }
+
+         // if hutang update siswa.total_hutang
+         if (paymentMethod === "Hutang") {
+            const siswaObj = siswa.find((s) => String(s.nis) === String(selectedSiswa));
+            const current = Number(siswaObj?.total_hutang ?? 0);
+            await supabase.from("siswa").update({ total_hutang: current + total }).eq("nis", selectedSiswa);
+         }
+
+         alert("Transaksi berhasil");
+         setCart([]);
+         await fetchAll();
+      } catch (err) {
+         console.error(err);
+         alert("Terjadi kesalahan saat memproses transaksi");
+      } finally {
+         setLoading(false);
+      }
+   }
+
+   return (
+      <div className="pos">
+         <div className="pos__left">
+            <h2>Produk</h2>
+            <div className="product-grid">
+               {products.map((p) => (
+                  <div
+                     key={p.id}
+                     className={"product-card " + (p.stok <= 0 ? "product-card--disabled" : "")}
+                     onClick={() => p.stok > 0 && addToCart(p)}
+                  >
+                     <div className="product-card__name">{p.nama_produk}</div>
+                     <div className="product-card__price">Rp {p.harga.toLocaleString()}</div>
+                     <div className="product-card__stok">Stok: {p.stok}</div>
+                  </div>
+               ))}
+            </div>
+         </div>
+
+         <div className="pos__right">
+            <div className="cart">
+               <div className="cart__header">Kasir POS</div>
+
+               <div className="cart__siswa">
+                  <label>Pilih Siswa</label>
+                  <select value={selectedSiswa} onChange={(e) => setSelectedSiswa(e.target.value)}>
+                     <option value="">-- Pilih --</option>
+                     {siswa.map((s) => (
+                        <option key={s.nis} value={s.nis}>
+                           {s.nis} - {s.nama_siswa} ({s.kelas})
+                        </option>
+                     ))}
+                  </select>
+               </div>
+
+               <div className="cart__list">
+                  {cart.length === 0 && <div className="note">Keranjang kosong</div>}
+                  {cart.map((it) => (
+                     <div className="cart-item" key={it.id}>
+                        <div className="cart-item__meta">
+                           <div>{it.nama}</div>
+                           <div className="note">Rp {it.harga.toLocaleString()}</div>
+                        </div>
+                        <div className="cart-item__controls">
+                           <button className="btn" onClick={() => changeQty(it.id, -1)}>-</button>
+                           <div className="controls__qty">{it.qty}</div>
+                           <button className="btn" onClick={() => changeQty(it.id, +1)}>+</button>
+                        </div>
+                     </div>
+                  ))}
+               </div>
+
+               <div className="payment">
+                  <div>
+                     <label>
+                        <input type="radio" name="metode" value="Tunai" checked={paymentMethod === "Tunai"} onChange={() => setPaymentMethod("Tunai")} /> Tunai
+                     </label>
+                     <label style={{ marginLeft: 8 }}>
+                        <input type="radio" name="metode" value="QRIS" checked={paymentMethod === "QRIS"} onChange={() => setPaymentMethod("QRIS")} /> QRIS
+                     </label>
+                     <label style={{ marginLeft: 8 }}>
+                        <input type="radio" name="metode" value="Hutang" checked={paymentMethod === "Hutang"} onChange={() => setPaymentMethod("Hutang")} /> Hutang
+                     </label>
+                  </div>
+                  <div className="total">Total: Rp {total.toLocaleString()}</div>
+                  <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                     <button className="btn btn--primary" onClick={handleProcess} disabled={loading}>
+                        {loading ? "Memproses..." : "Proses"}
+                     </button>
+                     <button
+                        className="btn"
+                        onClick={() => {
+                           setCart([]);
+                        }}
+                     >
+                        Bersihkan
+                     </button>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
+   );
+}
+
+

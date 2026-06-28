@@ -1,0 +1,137 @@
+.pos {
+   display: flex;
+   gap: 24px;
+   padding: 20px;
+   height: calc(100vh - 40px);
+   box-sizing: border-box;
+}
+
+.pos__left {
+   flex: 2;
+   overflow: auto;
+}
+
+.pos__right {
+   flex: 1;
+   border-left: 1px solid #e5e7eb;
+   padding-left: 20px;
+   display: flex;
+   flex-direction: column;
+}
+
+.product-grid {
+   display: grid;
+   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+   gap: 12px;
+}
+
+.product-card {
+   border: 1px solid #e5e7eb;
+   padding: 12px;
+   border-radius: 8px;
+   cursor: pointer;
+   display: flex;
+   flex-direction: column;
+   gap: 8px;
+}
+
+.product-card:hover {
+   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.product-card__name {
+   font-weight: 600;
+}
+
+.product-card__price {
+   color: #065f46;
+   font-weight: 700;
+}
+
+.product-card__stok {
+   font-size: 12px;
+   color: #6b7280;
+}
+
+.product-card--disabled {
+   opacity: 0.5;
+   cursor: not-allowed;
+}
+
+.cart {
+   display: flex;
+   flex-direction: column;
+   gap: 12px;
+}
+
+.cart__header {
+   font-size: 18px;
+   font-weight: 700;
+}
+
+.cart__siswa {
+   margin-bottom: 8px;
+}
+
+.cart__list {
+   flex: 1;
+   overflow: auto;
+   display: flex;
+   flex-direction: column;
+   gap: 8px;
+}
+
+.cart-item {
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+   gap: 8px;
+   border: 1px solid #eee;
+   padding: 8px;
+   border-radius: 6px;
+}
+
+.cart-item__meta {
+   display: flex;
+   flex-direction: column;
+}
+
+.cart-item__controls {
+   display: flex;
+   gap: 6px;
+   align-items: center;
+}
+
+.btn {
+   padding: 6px 10px;
+   border-radius: 6px;
+   border: 1px solid #d1d5db;
+   background: #fff;
+   cursor: pointer;
+}
+
+.btn--primary {
+   background: #0ea5a4;
+   color: #fff;
+   border-color: #0ea5a4;
+}
+
+.controls__qty {
+   min-width: 36px;
+   text-align: center;
+}
+
+.payment {
+   margin-top: 12px;
+}
+
+.total {
+   font-size: 20px;
+   font-weight: 700;
+   margin-top: 12px;
+}
+
+.note {
+   font-size: 13px;
+   color: #6b7280;
+}

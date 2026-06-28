@@ -1,0 +1,99 @@
+.laporan {
+   padding: 20px;
+}
+
+.laporan__header {
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+   flex-wrap: wrap;
+   gap: 16px;
+   margin-bottom: 24px;
+}
+
+.laporan__title {
+   font-size: 24px;
+   font-weight: 700;
+}
+
+.filter-group {
+   display: grid;
+   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+   gap: 12px;
+}
+
+.filter-group__field {
+   display: flex;
+   flex-direction: column;
+   gap: 6px;
+}
+
+.filter-group__label {
+   font-size: 14px;
+   color: #374151;
+}
+
+.filter-group__select,
+.filter-group__input {
+   padding: 10px 12px;
+   border: 1px solid #cbd5e1;
+   border-radius: 10px;
+}
+
+.metrics {
+   display: grid;
+   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+   gap: 16px;
+   margin-bottom: 24px;
+}
+
+.metric-card {
+   background: #fff;
+   border: 1px solid #e5e7eb;
+   border-radius: 14px;
+   padding: 18px;
+}
+
+.metric-card__label {
+   font-size: 13px;
+   color: #6b7280;
+}
+
+.metric-card__value {
+   font-size: 22px;
+   font-weight: 700;
+   margin-top: 8px;
+}
+
+.transaction-table-wrap {
+   overflow-x: auto;
+   border: 1px solid #e5e7eb;
+   border-radius: 12px;
+   background: #fff;
+}
+
+.transaction-table {
+   width: 100%;
+   border-collapse: collapse;
+}
+
+.transaction-table th,
+.transaction-table td {
+   padding: 14px;
+   border-bottom: 1px solid #f3f4f6;
+   text-align: left;
+}
+
+.transaction-table th {
+   background: #f8fafc;
+}
+
+.transaction-table__row:hover {
+   background: #f9fafb;
+}
+
+.empty-state {
+   padding: 24px;
+   text-align: center;
+   color: #6b7280;
+}
