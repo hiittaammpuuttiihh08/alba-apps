@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase";
 import { getAuthSession } from "@/utils/auth";
+import Loading from "@/components/Loading";
 import "./saldo.css";
 
 const supabase = createClient();
@@ -74,7 +75,7 @@ export default function SiswaSaldoPage() {
          </div>
 
          {loading ? (
-            <div className="page-message">Memuat data saldo...</div>
+            <Loading message="Memuat data saldo..." />
          ) : errorMessage ? (
             <div className="page-message page-message--error">{errorMessage}</div>
          ) : !student ? (

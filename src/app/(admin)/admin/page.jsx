@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase";
+import Loading from "@/components/Loading";
 
 const supabase = createClient();
 
@@ -51,7 +52,7 @@ export default function AdminDashboardPage() {
          </div>
 
          {loading ? (
-            <div>Memuat metrik...</div>
+            <Loading message="Memuat metrik..." size="small" />
          ) : (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16, marginTop: 20 }}>
                <div className="metric-card">

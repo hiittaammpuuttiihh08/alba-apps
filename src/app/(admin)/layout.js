@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getAuthSession, clearAuthSession } from "@/utils/auth";
 import AdminSidebar from "./AdminSidebar";
+import Loading from "@/components/Loading";
 
 export default function AdminLayout({ children }) {
   const router = useRouter();
@@ -38,7 +39,7 @@ export default function AdminLayout({ children }) {
   }, [router]);
 
   if (loading) {
-    return <div className="page-loading">Memeriksa otentikasi admin...</div>;
+    return <Loading message="Memeriksa otentikasi admin..." size="large" />;
   }
 
   return (

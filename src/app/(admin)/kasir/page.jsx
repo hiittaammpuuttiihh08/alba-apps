@@ -12,10 +12,6 @@ export default function KasirPage() {
    const [cart, setCart] = useState([]);
    const [paymentMethod, setPaymentMethod] = useState("Tunai");
    const [loading, setLoading] = useState(false);
-   const [topupAmount, setTopupAmount] = useState("");
-   const [topupMethod, setTopupMethod] = useState("Tunai");
-   const [topupNotes, setTopupNotes] = useState("");
-   const [topupLoading, setTopupLoading] = useState(false);
 
    useEffect(() => {
       fetchAll();
@@ -111,40 +107,6 @@ export default function KasirPage() {
       }
    }
 
-   async function handleTopup() {
-      if (!selectedSiswa) return alert("Pilih siswa terlebih dahulu");
-      const amount = Number(topupAmount);
-      if (!amount || amount <= 0) return alert("Masukkan jumlah top-up yang valid");
-      setTopupLoading(true);
-
-      try {
-         const siswaObj = siswa.find((s) => String(s.nis) === String(selectedSiswa));
-         if (!siswaObj) return alert("Siswa tidak ditemukan");
-
-         const newSaldo = Number(siswaObj.saldo ?? 0) + amount;
-         const { error: updateErr } = await supabase.from("siswa").update({ saldo: newSaldo }).eq("nis", selectedSiswa);
-         if (updateErr) throw updateErr;
-
-         const { error: insertErr } = await supabase.from("topup_saldo").insert({
-            nis_siswa: selectedSiswa,
-            jumlah: amount,
-            metode: topupMethod,
-            keterangan: topupNotes || null,
-         });
-         if (insertErr) throw insertErr;
-
-         alert("Top-up saldo berhasil");
-         setTopupAmount("");
-         setTopupNotes("");
-         await fetchAll();
-      } catch (err) {
-         console.error(err);
-         alert("Gagal melakukan top-up saldo");
-      } finally {
-         setTopupLoading(false);
-      }
-   }
-
    return (
       <div className="pos">
          <div className="pos__left">
@@ -221,43 +183,6 @@ export default function KasirPage() {
                         }}
                      >
                         Bersihkan
-                     </button>
-                  </div>
-               </div>
-
-               <div className="topup-section" style={{ marginTop: 24, paddingTop: 24, borderTop: "1px solid #e5e7eb" }}>
-                  <h3>Top-Up Saldo Siswa</h3>
-                  <div style={{ display: "grid", gap: 12, marginTop: 12 }}>
-                     <div>
-                        <label>Jumlah Top-Up</label>
-                        <input
-                           type="number"
-                           min="1"
-                           value={topupAmount}
-                           onChange={(e) => setTopupAmount(e.target.value)}
-                           placeholder="Masukkan jumlah"
-                           style={{ width: "100%", padding: "10px", borderRadius: 10, border: "1px solid #d1d5db" }}
-                        />
-                     </div>
-                     <div>
-                        <label>Metode Top-Up</label>
-                        <select value={topupMethod} onChange={(e) => setTopupMethod(e.target.value)} style={{ width: "100%", padding: "10px", borderRadius: 10, border: "1px solid #d1d5db" }}>
-                           <option value="Tunai">Tunai</option>
-                           <option value="Transfer">Transfer</option>
-                           <option value="Lainnya">Lainnya</option>
-                        </select>
-                     </div>
-                     <div>
-                        <label>Keterangan (opsional)</label>
-                        <input
-                           value={topupNotes}
-                           onChange={(e) => setTopupNotes(e.target.value)}
-                           placeholder="Catatan..."
-                           style={{ width: "100%", padding: "10px", borderRadius: 10, border: "1px solid #d1d5db" }}
-                        />
-                     </div>
-                     <button className="btn btn--primary" onClick={handleTopup} disabled={topupLoading || !selectedSiswa}>
-                        {topupLoading ? "Memproses top-up..." : "Top-Up Saldo"}
                      </button>
                   </div>
                </div>

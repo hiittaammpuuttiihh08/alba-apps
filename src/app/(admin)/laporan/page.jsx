@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/utils/supabase";
+import Loading from "@/components/Loading";
 
 const supabase = createClient();
 
@@ -152,7 +153,7 @@ export default function LaporanPage() {
          </div>
 
          {loading ? (
-            <div className="laporan-page__loading">Memuat data...</div>
+            <Loading message="Memuat data..." size="small" />
          ) : (
             <>
                <div className="metric-grid">

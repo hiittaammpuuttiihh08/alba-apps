@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 
 const navItems = [
@@ -10,20 +11,30 @@ const navItems = [
 ];
 
 export default function SiswaSidebar() {
-   const pathname = usePathname();
-   const normalizedPath = pathname?.replace(/\/$/, "") || "/";
+   const pathname = usePathname() || "";
+   const normalizedPath = useMemo(
+      () => pathname.split(/[?#]/)[0].replace(/\/$/, "") || "/",
+      [pathname]
+   );
+   const [currentPath, setCurrentPath] = useState(normalizedPath);
+
+   useEffect(() => {
+      setCurrentPath(normalizedPath);
+   }, [normalizedPath]);
 
    return (
-      <aside className="admin-sidebar">
-         <div className="admin-sidebar__brand">Alba Apps</div>
-         <nav className="admin-sidebar__nav">
+      <aside className="sidebar admin-sidebar">
+         <div className="sidebar__logo admin-sidebar__brand">Alba Apps</div>
+         <nav className="sidebar__menu admin-sidebar__nav">
             {navItems.map((item) => {
-               const isActive = normalizedPath === item.href;
+               const itemPath = item.href.replace(/\/$/, "") || "/";
+               const isActive = currentPath === itemPath || currentPath.startsWith(`${itemPath}/`);
                return (
                   <Link
                      key={item.href}
                      href={item.href}
-                     className={`admin-sidebar__link${isActive ? " admin-sidebar__link--active" : ""}`}
+                     className={`sidebar__link admin-sidebar__link${isActive ? " sidebar__link--active admin-sidebar__link--active" : ""}`}
+                     aria-current={isActive ? "page" : undefined}
                   >
                      {item.label}
                   </Link>

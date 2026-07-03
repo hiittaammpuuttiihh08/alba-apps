@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/utils/supabase";
 import { getAuthSession } from "@/utils/auth";
+import Loading from "@/components/Loading";
 
 const supabase = createClient();
 
@@ -79,7 +80,7 @@ export default function DashboardSiswaPage() {
             <div className="dashboard-card">
                <div className="dashboard-card__heading">Profil Siswa</div>
                {loading ? (
-                  <div className="dashboard-card__loading">Memuat...</div>
+                  <Loading message="Memuat..." size="small" />
                ) : !student ? (
                   <div className="dashboard-card__empty">Siswa tidak ditemukan.</div>
                ) : (

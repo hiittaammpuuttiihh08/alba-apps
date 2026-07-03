@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase";
+import Loading from "@/components/Loading";
 
 const supabase = createClient();
 
@@ -89,7 +90,7 @@ export default function ProdukPage() {
          </section>
 
          <section>
-            {loading && <div>Loading...</div>}
+            {loading && <Loading message="Memuat produk..." size="small" />}
             <table className="produk-table" style={{ width: "100%", borderCollapse: "collapse" }}>
                <thead>
                   <tr>

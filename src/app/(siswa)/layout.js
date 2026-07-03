@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getAuthSession, clearAuthSession } from "@/utils/auth";
 import SiswaSidebar from "./SiswaSidebar";
+import Loading from "@/components/Loading";
 
 export default function SiswaLayout({ children }) {
   const router = useRouter();
@@ -38,7 +39,7 @@ export default function SiswaLayout({ children }) {
   }, [router]);
 
   if (loading) {
-    return <div className="page-loading">Memeriksa otentikasi siswa...</div>;
+    return <Loading message="Memeriksa otentikasi siswa..." size="large" />;
   }
 
   return (

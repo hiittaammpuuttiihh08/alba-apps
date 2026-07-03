@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase";
+import Loading from "@/components/Loading";
 
 const supabase = createClient();
 
@@ -125,7 +126,7 @@ export default function SiswaPage() {
          </section>
 
          <section>
-            {loading && <div>Loading...</div>}
+            {loading && <Loading message="Memuat siswa..." size="small" />}
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
                <thead>
                   <tr>
