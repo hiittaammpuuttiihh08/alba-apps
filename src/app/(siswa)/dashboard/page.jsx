@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/utils/supabase";
+import { getAuthSession } from "@/utils/auth";
 
 const supabase = createClient();
 
@@ -19,13 +20,22 @@ export default function DashboardSiswaPage() {
    async function fetchData() {
       setLoading(true);
       try {
+         const session = getAuthSession();
+         const nisSession = session?.role === "siswa" ? session.nis : null;
+         if (!nisSession) {
+            setStudent(null);
+            setActiveNis(null);
+            return;
+         }
+
          const { data: siswaData, error: siswaError } = await supabase
             .from("siswa")
             .select("nis,nama_siswa,kelas,total_hutang")
-            .limit(1);
+            .eq("nis", nisSession)
+            .maybeSingle();
 
          if (siswaError) throw siswaError;
-         const activeStudent = siswaData?.[0] ?? null;
+         const activeStudent = siswaData ?? null;
          if (!activeStudent) {
             setStudent(null);
             setActiveNis(null);

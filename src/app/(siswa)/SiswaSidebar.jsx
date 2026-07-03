@@ -4,16 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const navItems = [
-   { href: "/admin", label: "Dashboard" },
-   { href: "/kasir", label: "Kasir" },
-   { href: "/topup-saldo", label: "Top-Up Saldo" },
-   { href: "/hutang", label: "Hutang" },
-   { href: "/laporan", label: "Laporan" },
-   { href: "/produk", label: "Produk" },
-   { href: "/siswa", label: "Siswa" },
+   { href: "/dashboard", label: "Dashboard" },
+   { href: "/saldo", label: "Saldo" },
+   { href: "/settings", label: "Settings" },
 ];
 
-export default function AdminSidebar() {
+export default function SiswaSidebar() {
    const pathname = usePathname();
    const normalizedPath = pathname?.replace(/\/$/, "") || "/";
 
@@ -22,9 +18,7 @@ export default function AdminSidebar() {
          <div className="admin-sidebar__brand">Alba Apps</div>
          <nav className="admin-sidebar__nav">
             {navItems.map((item) => {
-               const isActive =
-                  normalizedPath === item.href ||
-                  (item.href === "/admin" && normalizedPath === "/");
+               const isActive = normalizedPath === item.href;
                return (
                   <Link
                      key={item.href}

@@ -1,0 +1,97 @@
+.page-content {
+   display: flex;
+   flex-direction: column;
+   gap: 24px;
+   padding: 20px;
+}
+
+.page-header {
+   display: flex;
+   flex-direction: column;
+   gap: 8px;
+}
+
+.page-header h1 {
+   margin: 0;
+   font-size: 2rem;
+}
+
+.page-header p {
+   margin: 0;
+   color: #6b7280;
+}
+
+.page-message {
+   padding: 18px;
+   border-radius: 16px;
+   background: #f8fafc;
+   color: #475569;
+   border: 1px solid #e2e8f0;
+}
+
+.page-message--error {
+   background: #fef2f2;
+   color: #b91c1c;
+   border-color: #fecaca;
+}
+
+.saldo-card {
+   background: #fff;
+   border: 1px solid #e5e7eb;
+   border-radius: 18px;
+   padding: 24px;
+   box-shadow: 0 14px 40px rgba(15, 23, 42, 0.06);
+   display: grid;
+   gap: 10px;
+}
+
+.saldo-card__label {
+   color: #6b7280;
+   font-size: 0.95rem;
+   font-weight: 600;
+}
+
+.saldo-card__value {
+   font-size: 2.5rem;
+   font-weight: 800;
+   color: #0f172a;
+}
+
+.saldo-card__meta {
+   color: #475569;
+}
+
+.history-section {
+   display: flex;
+   flex-direction: column;
+   gap: 12px;
+}
+
+.history-table-wrap {
+   overflow-x: auto;
+   border: 1px solid #e5e7eb;
+   border-radius: 14px;
+   background: #fff;
+}
+
+.history-table {
+   width: 100%;
+   border-collapse: collapse;
+}
+
+.history-table th,
+.history-table td {
+   padding: 14px 16px;
+   text-align: left;
+   border-bottom: 1px solid #f3f4f6;
+}
+
+.history-table th {
+   background: #f8fafc;
+   color: #475569;
+   font-weight: 700;
+}
+
+.history-table tr:last-child td {
+   border-bottom: none;
+}

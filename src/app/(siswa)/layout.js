@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getAuthSession, clearAuthSession } from "@/utils/auth";
+import SiswaSidebar from "./SiswaSidebar";
 
 export default function SiswaLayout({ children }) {
   const router = useRouter();
@@ -41,14 +42,17 @@ export default function SiswaLayout({ children }) {
   }
 
   return (
-    <>
-      <header className="app-header">
-        <div className="app-header__title">Portal Siswa</div>
-        <button type="button" className="btn btn--secondary" onClick={handleLogout}>
-          Keluar
-        </button>
-      </header>
-      {children}
-    </>
+    <div className="admin-layout">
+      <SiswaSidebar />
+      <div className="admin-layout__content">
+        <header className="app-header">
+          <div className="app-header__title">Portal Siswa</div>
+          <button type="button" className="btn btn--secondary" onClick={handleLogout}>
+            Keluar
+          </button>
+        </header>
+        <main className="admin-layout__main">{children}</main>
+      </div>
+    </div>
   );
 } 
