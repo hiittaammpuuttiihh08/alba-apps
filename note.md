@@ -67,10 +67,6 @@ CREATE TABLE detail_order_siswa (
     harga_satuan INT NOT NULL CHECK (harga_satuan >= 0)
 );
 
-Fitur selanjutnya yang akan dibuat:
-1. Siswa akan punya saldo. Contoh kasus: siswa dapat isi saldo dengan cara membayar ke admin atau kasir sehingga nanti admin akan menambahkan saldo siswa dan dapat digunakan untuk pembayaran di koperasi.
-2. Siswa ada self service. Contoh kasusnya jika siswa ingin memesan suatu barang dari koperasi namun saat itu siswa sedang tidak di koperasi. jadi buatkan seperti online shop pada umumnya, ada keranjang terus dapat juga melakukan pembayaran. nanti dari admin tinggal di konfirmasi.
-
 -- 8. TRUNCATE SEMUA DATA DAN INSERT DUMMY DATA
 -- Hati-hati: pastikan ini dijalankan di environment development atau test.
 BEGIN;

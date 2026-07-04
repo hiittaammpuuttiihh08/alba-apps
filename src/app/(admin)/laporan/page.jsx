@@ -100,15 +100,32 @@ export default function LaporanPage() {
    }, [transactions, orders]);
 
    function exportTransactionsToCsv() {
+      const now = new Date();
+      const periodLabel = filter === "month" ? "bulan_ini" : "hari_ini";
+
+      const transactionRows = transactions.map((t) => [
+         "Transaksi",
+         new Date(t.created_at).toLocaleString("id-ID"),
+         t.nis_siswa ?? "",
+         t.metode_pembayaran ?? "",
+         t.status_pembayaran ?? "",
+         Number(t.total_bayar || 0),
+      ]);
+
+      const orderRows = orders.map((o) => [
+         "Order Siswa",
+         new Date(o.created_at).toLocaleString("id-ID"),
+         o.nis_siswa ?? "",
+         o.metode_pembayaran ?? "",
+         o.status_order ?? "",
+         o.status_pembayaran ?? "",
+         Number(o.total_harga || 0),
+      ]);
+
       const rows = [
-         ["Tanggal", "NIS Siswa", "Metode", "Status", "Total Bayar"],
-         ...transactions.map((t) => [
-            new Date(t.created_at).toLocaleString("id-ID"),
-            t.nis_siswa ?? "",
-            t.metode_pembayaran ?? "",
-            t.status_pembayaran ?? "",
-            Number(t.total_bayar || 0),
-         ]),
+         ["Jenis Data", "Tanggal", "NIS Siswa", "Metode", "Status Order", "Status Bayar", "Total"],
+         ...transactionRows,
+         ...orderRows,
       ];
 
       const csvContent = rows
@@ -129,8 +146,7 @@ export default function LaporanPage() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      const now = new Date();
-      a.download = `laporan_${now.toISOString().slice(0, 10)}.csv`;
+      a.download = `laporan_${periodLabel}_${now.toISOString().slice(0, 10)}.csv`;
       document.body.appendChild(a);
       a.click();
       a.remove();
