@@ -224,7 +224,6 @@
 }
 
 @media (max-width: 768px) {
-
    .beli-produk-page__header,
    .panel-header {
       flex-direction: column;
@@ -233,5 +232,22 @@
 
    .beli-produk-summary {
       grid-template-columns: 1fr;
+      width: 100%;
+   }
+
+   .beli-produk-panel {
+      padding: 1rem;
+   }
+
+   .cart-item__controls {
+      grid-template-columns: 1fr;
+   }
+
+   .product-grid {
+      grid-template-columns: 1fr;
+   }
+
+   .search-field input {
+      max-width: 100%;
    }
 }
