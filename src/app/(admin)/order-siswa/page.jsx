@@ -63,6 +63,16 @@ export default function OrderSiswaPage() {
       [orders, selectedOrderId]
    );
 
+   const pendingOrders = useMemo(
+      () => orders.filter((order) => order.status_order === "Menunggu"),
+      [orders]
+   );
+
+   const completedOrders = useMemo(
+      () => orders.filter((order) => order.status_order !== "Menunggu"),
+      [orders]
+   );
+
    function handleSelectOrder(orderId) {
       setSelectedOrderId(orderId);
       setOrderItems([]);
@@ -186,45 +196,77 @@ export default function OrderSiswaPage() {
                <div className="order-siswa-layout">
                   <section className="order-siswa-list-panel">
                      <div className="panel-title">Daftar Order</div>
-                     <div className="order-siswa-table-wrap">
-                        <table className="order-siswa-table">
-                           <thead>
-                              <tr>
-                                 <th>Tanggal</th>
-                                 <th>NIS</th>
-                                 <th>Nama</th>
-                                 <th>Total</th>
-                                 <th>Metode</th>
-                                 <th>Status Order</th>
-                                 <th>Status Bayar</th>
-                              </tr>
-                           </thead>
-                           <tbody>
-                              {orders.length === 0 ? (
-                                 <tr>
-                                    <td colSpan={7} className="order-siswa-empty">
-                                       Belum ada order siswa.
-                                    </td>
-                                 </tr>
-                              ) : (
-                                 orders.map((order) => (
-                                    <tr
-                                       key={order.id}
-                                       className={selectedOrderId === order.id ? "order-siswa-row order-siswa-row--selected" : "order-siswa-row"}
-                                       onClick={() => handleSelectOrder(order.id)}
-                                    >
-                                       <td>{new Date(order.created_at).toLocaleString("id-ID")}</td>
-                                       <td>{order.siswa?.nis ?? "-"}</td>
-                                       <td>{order.siswa?.nama_siswa ?? "-"}</td>
-                                       <td>Rp {Number(order.total_harga ?? 0).toLocaleString()}</td>
-                                       <td>{order.metode_pembayaran}</td>
-                                       <td>{order.status_order}</td>
-                                       <td>{order.status_pembayaran}</td>
-                                    </tr>
-                                 ))
-                              )}
-                           </tbody>
-                        </table>
+
+                     <div className="order-group-card">
+                        <div className="order-group-card__header">
+                           <div>
+                              <h3>Menunggu Konfirmasi</h3>
+                              <p>Order yang perlu diproses admin.</p>
+                           </div>
+                           <span>{pendingOrders.length}</span>
+                        </div>
+                        <div className="order-list">
+                           {pendingOrders.length === 0 ? (
+                              <div className="order-card-empty">Tidak ada order yang menunggu konfirmasi.</div>
+                           ) : (
+                              pendingOrders.map((order) => (
+                                 <div
+                                    key={order.id}
+                                    className={selectedOrderId === order.id ? "order-card order-card--selected" : "order-card"}
+                                    onClick={() => handleSelectOrder(order.id)}
+                                 >
+                                    <div className="order-card__top">
+                                       <div>
+                                          <div className="order-card__name">{order.siswa?.nama_siswa ?? "-"}</div>
+                                          <div className="order-card__nis">NIS {order.siswa?.nis ?? "-"}</div>
+                                       </div>
+                                       <div className="order-card__total">Rp {Number(order.total_harga ?? 0).toLocaleString()}</div>
+                                    </div>
+                                    <div className="order-card__meta">
+                                       <span>{new Date(order.created_at).toLocaleString("id-ID")}</span>
+                                       <span>{order.metode_pembayaran}</span>
+                                    </div>
+                                    <div className="order-card__status">Status bayar: {order.status_pembayaran}</div>
+                                 </div>
+                              ))
+                           )}
+                        </div>
+                     </div>
+
+                     <div className="order-group-card order-group-card--done">
+                        <div className="order-group-card__header order-group-card__header--done">
+                           <div>
+                              <h3>Sudah Selesai</h3>
+                              <p>Order yang sudah dikonfirmasi atau ditolak.</p>
+                           </div>
+                           <span>{completedOrders.length}</span>
+                        </div>
+                        <div className="order-list">
+                           {completedOrders.length === 0 ? (
+                              <div className="order-card-empty">Belum ada order yang selesai.</div>
+                           ) : (
+                              completedOrders.map((order) => (
+                                 <div
+                                    key={order.id}
+                                    className={selectedOrderId === order.id ? "order-card order-card--selected" : "order-card"}
+                                    onClick={() => handleSelectOrder(order.id)}
+                                 >
+                                    <div className="order-card__top">
+                                       <div>
+                                          <div className="order-card__name">{order.siswa?.nama_siswa ?? "-"}</div>
+                                          <div className="order-card__nis">NIS {order.siswa?.nis ?? "-"}</div>
+                                       </div>
+                                       <div className="order-card__total">Rp {Number(order.total_harga ?? 0).toLocaleString()}</div>
+                                    </div>
+                                    <div className="order-card__meta">
+                                       <span>{new Date(order.created_at).toLocaleString("id-ID")}</span>
+                                       <span>{order.metode_pembayaran}</span>
+                                    </div>
+                                    <div className="order-card__status">Status: {order.status_order}</div>
+                                 </div>
+                              ))
+                           )}
+                        </div>
                      </div>
                   </section>
 
@@ -302,14 +344,14 @@ export default function OrderSiswaPage() {
                                  onClick={() => handleConfirm(selectedOrder)}
                                  disabled={selectedOrder.status_order !== "Menunggu" || actionLoading}
                               >
-                                 Konfirmasi Order
+                                 {selectedOrder.status_order === "Menunggu" ? "Konfirmasi Order" : "Order Sudah Selesai"}
                               </button>
                               <button
                                  className="btn btn--danger"
                                  onClick={() => handleReject(selectedOrder)}
                                  disabled={selectedOrder.status_order !== "Menunggu" || actionLoading}
                               >
-                                 Tolak Order
+                                 {selectedOrder.status_order === "Menunggu" ? "Tolak Order" : "Aksi Tidak Tersedia"}
                               </button>
                            </div>
                         </>

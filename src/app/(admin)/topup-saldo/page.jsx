@@ -109,9 +109,10 @@ export default function AdminTopupSaldoPage() {
 
             <div className="form-row">
                <label>
-                  Keterangan
-                  <input type="text" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Keterangan (opsional)" />
+                  Keterangan untuk riwayat siswa
+                  <input type="text" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Contoh: top-up awal, pembayaran tunai, transfer bank" />
                </label>
+               <p className="hint-text">Catatan ini akan muncul di riwayat saldo siswa agar lebih mudah dipahami.</p>
             </div>
 
             <button type="submit" className="btn btn--primary" disabled={loading}>

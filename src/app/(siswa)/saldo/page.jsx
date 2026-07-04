@@ -14,6 +14,23 @@ export default function SiswaSaldoPage() {
    const [loading, setLoading] = useState(true);
    const [errorMessage, setErrorMessage] = useState("");
 
+   function formatHistoryDescription(item) {
+      if (item.type === "Saldo Masuk") {
+         const baseText = item.method ? `Top-up saldo via ${item.method}` : "Saldo masuk";
+         return item.description && item.description.trim()
+            ? `${baseText} • ${item.description}`
+            : baseText;
+      }
+
+      if (item.type === "Saldo Keluar") {
+         if (item.method === "Pembayaran Saldo") return "Pembayaran belanja menggunakan saldo";
+         if (item.method === "Pembayaran Hutang") return "Pelunasan hutang dari saldo";
+         return item.description || item.method || "Pengeluaran saldo";
+      }
+
+      return item.description || item.method || "-";
+   }
+
    useEffect(() => {
       async function fetchSaldo() {
          setLoading(true);
@@ -69,7 +86,7 @@ export default function SiswaSaldoPage() {
                amount: Number(item.jumlah),
                type: "Saldo Masuk",
                method: item.metode,
-               description: item.keterangan || "Top-up saldo",
+               description: item.keterangan || "",
             }));
 
             const outgoingHistory = (paymentData ?? []).map((item) => ({
@@ -119,7 +136,7 @@ export default function SiswaSaldoPage() {
 
                <div className="history-section">
                   <h2>Riwayat Saldo</h2>
-                  <p>Catatan saldo masuk dan keluar untuk akun Anda.</p>
+                  <p>Setiap entri di bawah menjelaskan alasan saldo masuk atau keluar untuk akun Anda.</p>
 
                   {historyItems.length === 0 ? (
                      <div className="page-message">Belum ada riwayat saldo.</div>
@@ -131,7 +148,7 @@ export default function SiswaSaldoPage() {
                                  <th>Tanggal</th>
                                  <th>Jumlah</th>
                                  <th>Tipe</th>
-                                 <th>Keterangan</th>
+                                 <th>Detail</th>
                               </tr>
                            </thead>
                            <tbody>
@@ -140,7 +157,7 @@ export default function SiswaSaldoPage() {
                                     <td>{new Date(item.created_at).toLocaleString("id-ID")}</td>
                                     <td>Rp {Number(item.amount).toLocaleString()}</td>
                                     <td>{item.type}</td>
-                                    <td>{item.description || item.method || "-"}</td>
+                                    <td>{formatHistoryDescription(item)}</td>
                                  </tr>
                               ))}
                            </tbody>
