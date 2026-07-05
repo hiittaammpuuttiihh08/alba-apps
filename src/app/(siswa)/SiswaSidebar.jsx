@@ -9,7 +9,7 @@ const navItems = [
    { href: "/beli-produk", label: "Beli Produk" },
    { href: "/saldo", label: "Saldo" },
    { href: "/hutang-saya", label: "Hutang Saya" },
-   { href: "/settings", label: "Settings" },
+   { href: "/settings", label: "Profile" },
 ];
 
 export default function SiswaSidebar() {

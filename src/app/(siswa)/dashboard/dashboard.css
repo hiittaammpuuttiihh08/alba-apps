@@ -5,9 +5,10 @@
    gap: 24px;
 }
 
-.student-dashboard__top {
-   display: flex;
-   flex-wrap: wrap;
+.dashboard-overview {
+   display: grid;
+   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+   gap: 16px;
 }
 
 .dashboard-card {
@@ -15,9 +16,13 @@
    border: 1px solid #e5e7eb;
    border-radius: 14px;
    padding: 20px;
-   width: 100%;
-   max-width: 560px;
    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+}
+
+.dashboard-card--transactions {
+   display: flex;
+   flex-direction: column;
+   gap: 14px;
 }
 
 .dashboard-card__heading {
@@ -48,24 +53,32 @@
    color: #6b7280;
 }
 
-.dashboard-card__debt {
-   font-size: 16px;
+.dashboard-card__value-wrap {
+   display: flex;
+   flex-direction: column;
+   gap: 6px;
+}
+
+.dashboard-card__value {
+   font-size: 24px;
    font-weight: 700;
 }
 
-.dashboard-card__debt--warning {
+.dashboard-card__value--warning {
    color: #b91c1c;
 }
 
-.dashboard-card__debt--ok {
+.dashboard-card__value--ok {
    color: #047857;
 }
 
-.product-section,
-.transaction-section {
-   display: flex;
-   flex-direction: column;
-   gap: 12px;
+.dashboard-card__value--saldo {
+   color: #0f766e;
+}
+
+.dashboard-card__meta {
+   color: #6b7280;
+   font-size: 14px;
 }
 
 .section-header {
@@ -81,41 +94,6 @@
 
 .section-header__subtitle {
    margin: 0;
-   color: #6b7280;
-}
-
-.product-grid {
-   display: grid;
-   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-   gap: 14px;
-}
-
-.product-grid__empty {
-   padding: 16px;
-   color: #6b7280;
-}
-
-.product-card.product-card--small {
-   border: 1px solid #e5e7eb;
-   border-radius: 12px;
-   padding: 16px;
-   display: flex;
-   flex-direction: column;
-   gap: 10px;
-   background: #fff;
-}
-
-.product-card__name {
-   font-weight: 600;
-}
-
-.product-card__price {
-   color: #065f46;
-   font-weight: 700;
-}
-
-.product-card__stok {
-   font-size: 12px;
    color: #6b7280;
 }
 

@@ -103,6 +103,26 @@ button:hover,
   color: var(--text);
 }
 
+/* Disabled/Inactive button states */
+button:disabled,
+.btn:disabled,
+.button:disabled,
+button[disabled],
+.btn[disabled],
+.button[disabled] {
+  opacity: 0.56;
+  cursor: not-allowed;
+  transform: none !important;
+  filter: grayscale(8%);
+}
+
+/* Prevent hover transform on disabled buttons */
+button:disabled:hover,
+.btn:disabled:hover,
+.button:disabled:hover {
+  transform: none !important;
+}
+
 .page-loading {
   min-height: 100vh;
   display: grid;

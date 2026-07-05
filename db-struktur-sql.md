@@ -248,3 +248,4 @@ INSERT INTO detail_order_siswa (order_id, produk_id, jumlah, harga_satuan) VALUE
 ('order_1020', 20, 1, 1500);
 
 COMMIT;
+

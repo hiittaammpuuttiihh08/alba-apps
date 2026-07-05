@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@/utils/supabase";
 import { getAuthSession } from "@/utils/auth";
 import Loading from "@/components/Loading";
@@ -84,17 +84,30 @@ export default function BeliProdukPage() {
       [cartItems]
    );
 
+   const cartRef = useRef(null);
+
    const addToCart = (product) => {
       if (product.stok <= 0) return;
       setCartItems((current) => {
          const existing = current.find((item) => item.id === product.id);
+         let next;
          if (existing) {
             const nextQuantity = Math.min(existing.quantity + 1, product.stok);
-            return current.map((item) =>
-               item.id === product.id ? { ...item, quantity: nextQuantity } : item
-            );
+            next = current.map((item) => (item.id === product.id ? { ...item, quantity: nextQuantity } : item));
+         } else {
+            next = [...current, { ...product, quantity: 1 }];
          }
-         return [...current, { ...product, quantity: 1 }];
+
+         // scroll cart into view shortly after update
+         setTimeout(() => {
+            try {
+               cartRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+            } catch (e) {
+               // ignore
+            }
+         }, 120);
+
+         return next;
       });
    };
 
@@ -246,12 +259,15 @@ export default function BeliProdukPage() {
                      </div>
                   </div>
 
-                  <div className="beli-produk-panel beli-produk-panel--cart">
+                  <div ref={cartRef} className="beli-produk-panel beli-produk-panel--cart">
                      <div className="panel-header">
                         <div>
                            <h2>Keranjang</h2>
                            <p>Atur item sebelum mengirim order.</p>
                         </div>
+                        {cartItems.length > 0 && (
+                           <div className="cart-badge">{cartItems.length}</div>
+                        )}
                      </div>
 
                      <div className="cart-list">
@@ -293,7 +309,15 @@ export default function BeliProdukPage() {
                               <option value="Hutang">Hutang</option>
                            </select>
                         </div>
-                        <button className="btn btn--primary order-box__button" onClick={handleSubmitOrder} disabled={submitting || cartItems.length === 0}>
+                        <button
+                           className="btn btn--primary order-box__button"
+                           onClick={handleSubmitOrder}
+                           disabled={
+                              submitting ||
+                              cartItems.length === 0 ||
+                              (paymentMethod === "Saldo" && Number(student?.saldo ?? 0) < totalAmount)
+                           }
+                        >
                            {submitting ? "Mengirim order..." : "Kirim Pesanan"}
                         </button>
                         {paymentMethod === "Saldo" && Number(student?.saldo ?? 0) < totalAmount && (

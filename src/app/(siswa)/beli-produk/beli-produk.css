@@ -46,6 +46,11 @@
    gap: 1.5rem;
 }
 
+/* let panels size to their content instead of stretching */
+.beli-produk-grid {
+   align-items: start;
+}
+
 .beli-produk-panel {
    background: #fff;
    border: 1px solid #e2e8f0;
@@ -54,14 +59,30 @@
 }
 
 .beli-produk-panel--products {
-   min-height: 520px;
+   min-height: 420px;
 }
 
 .beli-produk-panel--cart {
-   min-height: 520px;
+   /* let cart hug its content */
+   min-height: auto;
    display: flex;
    flex-direction: column;
-   justify-content: space-between;
+   justify-content: flex-start;
+}
+
+/* allow cart list to grow naturally so the panel height follows its content */
+.beli-produk-panel--cart .cart-list {
+   max-height: none;
+   overflow: visible;
+}
+
+.cart-badge {
+   background: #2563eb;
+   color: #fff;
+   padding: 6px 10px;
+   border-radius: 999px;
+   font-weight: 700;
+   font-size: 0.9rem;
 }
 
 .panel-header {
@@ -224,6 +245,7 @@
 }
 
 @media (max-width: 768px) {
+
    .beli-produk-page__header,
    .panel-header {
       flex-direction: column;

@@ -10,7 +10,6 @@ const supabase = createClient();
 export default function DashboardSiswaPage() {
    const [activeNis, setActiveNis] = useState(null);
    const [student, setStudent] = useState(null);
-   const [produk, setProduk] = useState([]);
    const [transactions, setTransactions] = useState([]);
    const [loading, setLoading] = useState(true);
 
@@ -31,7 +30,7 @@ export default function DashboardSiswaPage() {
 
          const { data: siswaData, error: siswaError } = await supabase
             .from("siswa")
-            .select("nis,nama_siswa,kelas,total_hutang")
+            .select("nis,nama_siswa,kelas,total_hutang,saldo")
             .eq("nis", nisSession)
             .maybeSingle();
 
@@ -46,19 +45,14 @@ export default function DashboardSiswaPage() {
          setActiveNis(activeStudent.nis);
          setStudent(activeStudent);
 
-         const [{ data: productData, error: productError }, { data: transactionData, error: transactionError }] = await Promise.all([
-            supabase.from("produk").select("id,nama_produk,harga,stok"),
-            supabase
-               .from("transaksi")
-               .select("id,metode_pembayaran,status_pembayaran,total_bayar,created_at")
-               .eq("nis_siswa", activeStudent.nis)
-               .order("created_at", { ascending: false }),
-         ]);
+         const { data: transactionData, error: transactionError } = await supabase
+            .from("transaksi")
+            .select("id,metode_pembayaran,status_pembayaran,total_bayar,created_at")
+            .eq("nis_siswa", activeStudent.nis)
+            .order("created_at", { ascending: false });
 
-         if (productError) throw productError;
          if (transactionError) throw transactionError;
 
-         setProduk(productData ?? []);
          setTransactions(transactionData ?? []);
       } catch (error) {
          console.error(error);
@@ -70,14 +64,19 @@ export default function DashboardSiswaPage() {
    const debtText = useMemo(() => {
       if (!student) return "";
       return student.total_hutang > 0
-         ? `Hutang Anda: Rp ${Number(student.total_hutang).toLocaleString()}`
-         : "Tidak ada hutang saat ini.";
+         ? `Rp ${Number(student.total_hutang).toLocaleString()}`
+         : "Rp 0";
+   }, [student]);
+
+   const saldoText = useMemo(() => {
+      if (!student) return "";
+      return `Rp ${Number(student.saldo ?? 0).toLocaleString()}`;
    }, [student]);
 
    return (
       <div className="student-dashboard">
-         <div className="student-dashboard__top">
-            <div className="dashboard-card">
+         <div className="dashboard-overview">
+            <div className="dashboard-card dashboard-card--profile">
                <div className="dashboard-card__heading">Profil Siswa</div>
                {loading ? (
                   <Loading message="Memuat..." size="small" />
@@ -90,40 +89,49 @@ export default function DashboardSiswaPage() {
                         <span>{student.nama_siswa}</span>
                      </div>
                      <div className="dashboard-card__field">
+                        <span className="dashboard-card__label">NIS</span>
+                        <span>{student.nis}</span>
+                     </div>
+                     <div className="dashboard-card__field">
                         <span className="dashboard-card__label">Kelas</span>
                         <span>{student.kelas}</span>
                      </div>
-                     <div className={student.total_hutang > 0 ? "dashboard-card__debt dashboard-card__debt--warning" : "dashboard-card__debt dashboard-card__debt--ok"}>
-                        {debtText}
-                     </div>
+                  </div>
+               )}
+            </div>
+
+            <div className="dashboard-card dashboard-card--debt">
+               <div className="dashboard-card__heading">Total Hutang</div>
+               {loading ? (
+                  <Loading message="Memuat..." size="small" />
+               ) : !student ? (
+                  <div className="dashboard-card__empty">Belum ada data.</div>
+               ) : (
+                  <div className="dashboard-card__value-wrap">
+                     <div className={student.total_hutang > 0 ? "dashboard-card__value dashboard-card__value--warning" : "dashboard-card__value dashboard-card__value--ok"}>{debtText}</div>
+                     <div className="dashboard-card__meta">{student.total_hutang > 0 ? "Ada tunggakan yang perlu dibayar" : "Tidak ada hutang saat ini"}</div>
+                  </div>
+               )}
+            </div>
+
+            <div className="dashboard-card dashboard-card--saldo">
+               <div className="dashboard-card__heading">Total Saldo</div>
+               {loading ? (
+                  <Loading message="Memuat..." size="small" />
+               ) : !student ? (
+                  <div className="dashboard-card__empty">Belum ada data.</div>
+               ) : (
+                  <div className="dashboard-card__value-wrap">
+                     <div className="dashboard-card__value dashboard-card__value--saldo">{saldoText}</div>
+                     <div className="dashboard-card__meta">Saldo tersedia untuk transaksi</div>
                   </div>
                )}
             </div>
          </div>
 
-         <div className="product-section">
+         <div className="dashboard-card dashboard-card--transactions">
             <div className="section-header">
-               <h2 className="section-header__title">Katalog Produk</h2>
-               <p className="section-header__subtitle">Lihat harga barang dan ketersediaan stok koperasi saat ini.</p>
-            </div>
-            <div className="product-grid">
-               {produk.length === 0 ? (
-                  <div className="product-grid__empty">Tidak ada produk tersedia.</div>
-               ) : (
-                  produk.map((item) => (
-                     <div key={item.id} className="product-card product-card--small">
-                        <div className="product-card__name">{item.nama_produk}</div>
-                        <div className="product-card__price">Rp {Number(item.harga).toLocaleString()}</div>
-                        <div className="product-card__stok">Stok tersisa: {item.stok}</div>
-                     </div>
-                  ))
-               )}
-            </div>
-         </div>
-
-         <div className="transaction-section">
-            <div className="section-header">
-               <h2 className="section-header__title">Riwayat Belanja Saya</h2>
+               <h2 className="section-header__title">Riwayat Transaksi</h2>
                <p className="section-header__subtitle">Daftar transaksi terbaru untuk NIS: {activeNis ?? "-"}</p>
             </div>
             <div className="transaction-table-wrap">
