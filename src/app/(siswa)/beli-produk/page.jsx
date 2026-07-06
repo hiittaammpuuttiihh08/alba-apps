@@ -85,6 +85,8 @@ export default function BeliProdukPage() {
    );
 
    const cartRef = useRef(null);
+   const toastTimeoutRef = useRef(null);
+   const [toast, setToast] = useState({ message: "", visible: false });
 
    const addToCart = (product) => {
       if (product.stok <= 0) return;
@@ -106,6 +108,17 @@ export default function BeliProdukPage() {
                // ignore
             }
          }, 120);
+
+         // show toast notification
+         try {
+            if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+            setToast({ message: `${product.nama_produk} ditambahkan ke keranjang`, visible: true });
+            toastTimeoutRef.current = setTimeout(() => {
+               setToast((t) => ({ ...t, visible: false }));
+            }, 2200);
+         } catch (e) {
+            // ignore
+         }
 
          return next;
       });
@@ -192,6 +205,10 @@ export default function BeliProdukPage() {
 
    return (
       <div className="beli-produk-page">
+         {/* toast container */}
+         <div className="toast-container">
+            {toast.visible && <div className={`toast show`}>{toast.message}</div>}
+         </div>
          <div className="beli-produk-page__header">
             <div>
                <h1>Beli Produk</h1>
