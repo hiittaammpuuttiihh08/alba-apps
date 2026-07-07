@@ -12,7 +12,7 @@ export default function AdminLayout({ children }) {
 
   function handleLogout() {
     clearAuthSession();
-    router.replace("/login-admin");
+    router.replace("/");
   }
 
   useEffect(() => {
@@ -20,7 +20,7 @@ export default function AdminLayout({ children }) {
 
     if (!session) {
       clearAuthSession();
-      router.replace("/login-admin");
+      router.replace("/");
       return;
     }
 
@@ -35,7 +35,7 @@ export default function AdminLayout({ children }) {
     }
 
     clearAuthSession();
-    router.replace("/login-admin");
+    router.replace("/");
   }, [router]);
 
   if (loading) {

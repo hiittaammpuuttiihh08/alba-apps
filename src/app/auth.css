@@ -50,6 +50,30 @@
    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
 }
 
+.auth-role-switch {
+   display: grid;
+   grid-template-columns: repeat(2, minmax(0, 1fr));
+   gap: 0.75rem;
+   margin-bottom: 1.25rem;
+}
+
+.auth-role-switch__button {
+   border: 1px solid #d1d5db;
+   background: #f8fafc;
+   color: #334155;
+   border-radius: 999px;
+   padding: 0.75rem 0.9rem;
+   font-weight: 700;
+   cursor: pointer;
+   transition: all 0.2s ease;
+}
+
+.auth-role-switch__button--active {
+   background: #5b61ff;
+   color: #fff;
+   border-color: #5b61ff;
+}
+
 .btn {
    display: inline-flex;
    justify-content: center;

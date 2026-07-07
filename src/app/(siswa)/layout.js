@@ -12,7 +12,7 @@ export default function SiswaLayout({ children }) {
 
   function handleLogout() {
     clearAuthSession();
-    router.replace("/login-siswa");
+    router.replace("/");
   }
 
   useEffect(() => {
@@ -20,7 +20,7 @@ export default function SiswaLayout({ children }) {
 
     if (!session) {
       clearAuthSession();
-      router.replace("/login-siswa");
+      router.replace("/");
       return;
     }
 
@@ -35,7 +35,7 @@ export default function SiswaLayout({ children }) {
     }
 
     clearAuthSession();
-    router.replace("/login-siswa");
+    router.replace("/");
   }, [router]);
 
   if (loading) {
