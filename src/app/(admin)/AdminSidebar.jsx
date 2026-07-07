@@ -13,7 +13,7 @@ const navItems = [
    { href: "/order-guru", label: "Order Guru" },
    { href: "/laporan", label: "Laporan" },
    { href: "/produk", label: "Produk" },
-   { href: "/siswa", label: "Siswa" },
+   { href: "/user", label: "User" },
 ];
 
 export default function AdminSidebar() {

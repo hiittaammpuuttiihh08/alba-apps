@@ -53,7 +53,7 @@ export default function GuruLayout({ children }) {
       <div className="admin-layout__content">
         <header className="app-header">
           <div className="app-header__title">Portal Guru</div>
-          <button onClick={handleLogout} className="btn btn--secondary">
+          <button type="button" onClick={handleLogout} className="btn btn--danger">
             Keluar
           </button>
         </header>

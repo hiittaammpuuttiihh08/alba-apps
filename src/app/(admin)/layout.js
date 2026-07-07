@@ -48,7 +48,7 @@ export default function AdminLayout({ children }) {
       <div className="admin-layout__content">
         <header className="app-header">
           <div className="app-header__title">Admin / Kasir</div>
-          <button type="button" className="btn btn--secondary" onClick={handleLogout}>
+          <button type="button" className="btn btn--danger" onClick={handleLogout}>
             Keluar
           </button>
         </header>

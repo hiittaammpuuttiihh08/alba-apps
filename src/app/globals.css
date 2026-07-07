@@ -96,6 +96,20 @@ button:hover,
   color: #fff;
 }
 
+button.btn--danger,
+.btn.btn--danger,
+.button.btn--danger {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: #ffffff;
+}
+
+button.btn--danger:hover,
+.btn.btn--danger:hover,
+.button.btn--danger:hover {
+  background: #b91c1c;
+}
+
 .btn--secondary,
 .button--secondary {
   background: var(--surface-muted);

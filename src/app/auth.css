@@ -99,6 +99,19 @@
    background: #4249db;
 }
 
+.btn--danger,
+.btn.btn--danger,
+.button.btn--danger {
+   background: #dc2626;
+   color: #ffffff;
+}
+
+.btn--danger:hover,
+.btn.btn--danger:hover,
+.button.btn--danger:hover {
+   background: #b91c1c;
+}
+
 .btn--secondary {
    background: #e2e8f0;
    color: #0f172a;
