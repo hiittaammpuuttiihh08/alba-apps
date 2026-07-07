@@ -16,6 +16,7 @@ export default function LaporanPage() {
    const [filter, setFilter] = useState("today");
    const [transactions, setTransactions] = useState([]);
    const [orders, setOrders] = useState([]);
+   const [ordersGuru, setOrdersGuru] = useState([]);
    const [loading, setLoading] = useState(false);
 
    useEffect(() => {
@@ -34,7 +35,7 @@ export default function LaporanPage() {
             const start = startDate.toISOString();
             const end = now.toISOString();
 
-            const [transactionRes, orderRes] = await Promise.all([
+            const [transactionRes, orderRes, orderGuruRes] = await Promise.all([
                supabase
                   .from("transaksi")
                   .select("id, nis_siswa, metode_pembayaran, status_pembayaran, total_bayar, created_at")
@@ -47,6 +48,12 @@ export default function LaporanPage() {
                   .gte("created_at", start)
                   .lte("created_at", end)
                   .order("created_at", { ascending: false }),
+               supabase
+                  .from("order_guru")
+                  .select("id, nip_guru, metode_pembayaran, status_order, status_pembayaran, total_harga, created_at")
+                  .gte("created_at", start)
+                  .lte("created_at", end)
+                  .order("created_at", { ascending: false }),
             ]);
 
             if (!transactionRes.error) {
@@ -54,6 +61,9 @@ export default function LaporanPage() {
             }
             if (!orderRes.error) {
                setOrders(orderRes.data ?? []);
+            }
+            if (!orderGuruRes.error) {
+               setOrdersGuru(orderGuruRes.data ?? []);
             }
          } catch (error) {
             console.error(error);
@@ -88,16 +98,24 @@ export default function LaporanPage() {
 
       const totalOrderSiswa = orders.length;
       const totalOrderSiswaValue = orders.reduce((sum, item) => sum + Number(item.total_harga || 0), 0);
+      const totalOrderGuru = ordersGuru.length;
+      const totalOrderGuruValue = ordersGuru.reduce((sum, item) => sum + Number(item.total_harga || 0), 0);
+      const totalTransactions = transactions.length;
+      const totalRevenue = totalTunai + totalQris + totalPelunasanHutang;
 
       return {
          totalTunai,
          totalQris,
          totalHutangBaru,
          totalPelunasanHutang,
+         totalRevenue,
+         totalTransactions,
          totalOrderSiswa,
          totalOrderSiswaValue,
+         totalOrderGuru,
+         totalOrderGuruValue,
       };
-   }, [transactions, orders]);
+   }, [transactions, orders, ordersGuru]);
 
    function exportTransactionsToCsv() {
       const now = new Date();
@@ -122,10 +140,21 @@ export default function LaporanPage() {
          Number(o.total_harga || 0),
       ]);
 
+      const orderGuruRows = ordersGuru.map((o) => [
+         "Order Guru",
+         new Date(o.created_at).toLocaleString("id-ID"),
+         o.nip_guru ?? "",
+         o.metode_pembayaran ?? "",
+         o.status_order ?? "",
+         o.status_pembayaran ?? "",
+         Number(o.total_harga || 0),
+      ]);
+
       const rows = [
-         ["Jenis Data", "Tanggal", "NIS Siswa", "Metode", "Status Order", "Status Bayar", "Total"],
+         ["Jenis Data", "Tanggal", "NIS/NIP", "Metode", "Status Order", "Status Bayar", "Total"],
          ...transactionRows,
          ...orderRows,
+         ...orderGuruRows,
       ];
 
       const csvContent = rows
@@ -202,12 +231,28 @@ export default function LaporanPage() {
                      <div className="metric-card__value">Rp {metrics.totalPelunasanHutang.toLocaleString()}</div>
                   </div>
                   <div className="metric-card">
+                     <div className="metric-card__label">Total Transaksi</div>
+                     <div className="metric-card__value">{metrics.totalTransactions}</div>
+                  </div>
+                  <div className="metric-card">
                      <div className="metric-card__label">Order Siswa</div>
                      <div className="metric-card__value">{metrics.totalOrderSiswa}</div>
                   </div>
                   <div className="metric-card">
                      <div className="metric-card__label">Total Order Siswa</div>
                      <div className="metric-card__value">Rp {metrics.totalOrderSiswaValue.toLocaleString()}</div>
+                  </div>
+                  <div className="metric-card">
+                     <div className="metric-card__label">Order Guru</div>
+                     <div className="metric-card__value">{metrics.totalOrderGuru}</div>
+                  </div>
+                  <div className="metric-card">
+                     <div className="metric-card__label">Total Order Guru</div>
+                     <div className="metric-card__value">Rp {metrics.totalOrderGuruValue.toLocaleString()}</div>
+                  </div>
+                  <div className="metric-card">
+                     <div className="metric-card__label">Total Pendapatan</div>
+                     <div className="metric-card__value">Rp {metrics.totalRevenue.toLocaleString()}</div>
                   </div>
                </div>
 
@@ -270,6 +315,42 @@ export default function LaporanPage() {
                               <tr key={item.id} className="laporan-table__row">
                                  <td className="laporan-table__cell">{new Date(item.created_at).toLocaleString("id-ID")}</td>
                                  <td className="laporan-table__cell">{item.nis_siswa || "-"}</td>
+                                 <td className="laporan-table__cell">{item.metode_pembayaran}</td>
+                                 <td className="laporan-table__cell">{item.status_order}</td>
+                                 <td className="laporan-table__cell">{item.status_pembayaran}</td>
+                                 <td className="laporan-table__cell">Rp {Number(item.total_harga || 0).toLocaleString()}</td>
+                              </tr>
+                           ))
+                        )}
+                     </tbody>
+                  </table>
+               </div>
+
+               <div className="laporan-page__table-wrap">
+                  <h2 className="laporan-page__subheading">Order Guru</h2>
+                  <table className="laporan-table">
+                     <thead>
+                        <tr>
+                           <th className="laporan-table__head">Tanggal</th>
+                           <th className="laporan-table__head">NIP Guru</th>
+                           <th className="laporan-table__head">Metode</th>
+                           <th className="laporan-table__head">Status Order</th>
+                           <th className="laporan-table__head">Status Bayar</th>
+                           <th className="laporan-table__head">Total Harga</th>
+                        </tr>
+                     </thead>
+                     <tbody>
+                        {ordersGuru.length === 0 ? (
+                           <tr>
+                              <td className="laporan-table__empty" colSpan="6">
+                                 Tidak ada order guru pada periode ini.
+                              </td>
+                           </tr>
+                        ) : (
+                           ordersGuru.map((item) => (
+                              <tr key={item.id} className="laporan-table__row">
+                                 <td className="laporan-table__cell">{new Date(item.created_at).toLocaleString("id-ID")}</td>
+                                 <td className="laporan-table__cell">{item.nip_guru || "-"}</td>
                                  <td className="laporan-table__cell">{item.metode_pembayaran}</td>
                                  <td className="laporan-table__cell">{item.status_order}</td>
                                  <td className="laporan-table__cell">{item.status_pembayaran}</td>

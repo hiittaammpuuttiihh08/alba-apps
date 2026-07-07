@@ -98,18 +98,21 @@
    border: 1px solid #e5e7eb;
    background: #ffffff;
    margin-top: 1.5rem;
+   padding: 20px;
 }
 
 .laporan-page__subheading {
-   margin: 1rem 0 0.75rem;
-   font-size: 1rem;
+   margin: 0 0 1rem;
+   font-size: 1.05rem;
    font-weight: 700;
+   color: #0f172a;
 }
 
 .laporan-table {
    width: 100%;
    min-width: 740px;
    border-collapse: collapse;
+   table-layout: fixed;
 }
 
 .laporan-table__head,
@@ -117,6 +120,7 @@
    padding: 16px 18px;
    border-bottom: 1px solid #f3f4f6;
    text-align: left;
+   vertical-align: middle;
 }
 
 .laporan-table__head {
@@ -124,10 +128,27 @@
    color: #475569;
    font-size: 0.95rem;
    font-weight: 700;
+   position: sticky;
+   top: 0;
+   z-index: 2;
+}
+
+.laporan-table__row:nth-child(odd) {
+   background: #ffffff;
+}
+
+.laporan-table__row:nth-child(even) {
+   background: #f9fafb;
 }
 
 .laporan-table__row:hover {
-   background: #f8fafc;
+   background: #eef2ff;
+}
+
+.laporan-table__cell {
+   white-space: nowrap;
+   overflow: hidden;
+   text-overflow: ellipsis;
 }
 
 .laporan-table__empty {
