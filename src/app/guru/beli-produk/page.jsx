@@ -119,6 +119,13 @@ export default function BeliProdukGuruPage() {
          const nipSession = session?.role === "guru" ? session.nip : null;
          if (!nipSession) throw new Error("Session tidak valid");
 
+         if (paymentMethod === "Saldo") {
+            const currentSaldo = Number(teacher?.saldo ?? 0);
+            if (currentSaldo < cartTotal) {
+               throw new Error("Saldo tidak cukup untuk melakukan pembayaran.");
+            }
+         }
+
          const orderId = `order_guru_${Date.now()}`;
 
          const { error: orderError } = await supabase.from("order_guru").insert({
@@ -144,20 +151,17 @@ export default function BeliProdukGuruPage() {
          if (detailError) throw detailError;
 
          if (paymentMethod === "Saldo") {
-            const newSaldo = (teacher?.saldo || 0) - cartTotal;
-            if (newSaldo < 0) {
-               throw new Error("Saldo tidak cukup!");
-            }
-
+            const newSaldo = Number(teacher?.saldo ?? 0) - cartTotal;
             const { error: updateError } = await supabase
                .from("guru")
                .update({ saldo: newSaldo })
                .eq("nip", nipSession);
 
             if (updateError) throw updateError;
+            setTeacher((current) => (current ? { ...current, saldo: newSaldo } : current));
          }
 
-         setMessage("Pesanan berhasil dibuat!");
+         setMessage(paymentMethod === "Saldo" ? "Pesanan berhasil dibuat dan saldo Anda langsung dipotong." : "Pesanan berhasil dibuat!");
          setCartItems([]);
          setTimeout(() => setMessage(""), 3000);
 

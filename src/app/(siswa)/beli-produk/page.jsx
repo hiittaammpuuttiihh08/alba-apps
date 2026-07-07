@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/utils/supabase";
 import { getAuthSession } from "@/utils/auth";
 import Loading from "@/components/Loading";
@@ -79,70 +79,41 @@ export default function BeliProdukPage() {
       });
    }, [products, searchQuery]);
 
-   const totalAmount = useMemo(
-      () => cartItems.reduce((sum, item) => sum + item.harga * item.quantity, 0),
-      [cartItems]
-   );
+   const cartTotal = useMemo(() => cartItems.reduce((sum, item) => sum + item.harga * item.quantity, 0), [cartItems]);
 
-   const cartRef = useRef(null);
-   const toastTimeoutRef = useRef(null);
-   const [toast, setToast] = useState({ message: "", visible: false });
-
-   const addToCart = (product) => {
+   function addToCart(product) {
       if (product.stok <= 0) return;
+
       setCartItems((current) => {
-         const existing = current.find((item) => item.id === product.id);
-         let next;
-         if (existing) {
-            const nextQuantity = Math.min(existing.quantity + 1, product.stok);
-            next = current.map((item) => (item.id === product.id ? { ...item, quantity: nextQuantity } : item));
-         } else {
-            next = [...current, { ...product, quantity: 1 }];
+         const existingItem = current.find((item) => item.id === product.id);
+         if (existingItem) {
+            const nextQuantity = Math.min(existingItem.quantity + 1, product.stok);
+            return current.map((item) => (item.id === product.id ? { ...item, quantity: nextQuantity } : item));
          }
 
-         // scroll cart into view shortly after update
-         setTimeout(() => {
-            try {
-               cartRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-            } catch (e) {
-               // ignore
-            }
-         }, 120);
-
-         // show toast notification
-         try {
-            if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
-            setToast({ message: `${product.nama_produk} ditambahkan ke keranjang`, visible: true });
-            toastTimeoutRef.current = setTimeout(() => {
-               setToast((t) => ({ ...t, visible: false }));
-            }, 2200);
-         } catch (e) {
-            // ignore
-         }
-
-         return next;
+         return [...current, { ...product, quantity: 1 }];
       });
-   };
+   }
 
-   const updateQuantity = (productId, value) => {
+   function removeFromCart(productId) {
+      setCartItems((current) => current.filter((item) => item.id !== productId));
+   }
+
+   function updateQuantity(productId, quantity) {
+      if (quantity <= 0) {
+         removeFromCart(productId);
+         return;
+      }
+
       setCartItems((current) =>
          current.map((item) => {
             if (item.id !== productId) return item;
-            const nextQuantity = Number(value);
-            if (!nextQuantity || nextQuantity < 1) return item;
-            return {
-               ...item,
-               quantity: Math.min(nextQuantity, item.stok),
-            };
+            return { ...item, quantity: Math.min(quantity, item.stok) };
          })
       );
-   };
+   }
 
-   const removeCartItem = (productId) => {
-      setCartItems((current) => current.filter((item) => item.id !== productId));
-   };
-
-   const handleSubmitOrder = async () => {
+   async function handleSubmitOrder() {
       setMessage("");
       if (!student) return;
       if (cartItems.length === 0) {
@@ -150,7 +121,7 @@ export default function BeliProdukPage() {
          return;
       }
 
-      if (paymentMethod === "Saldo" && Number(student.saldo ?? 0) < totalAmount) {
+      if (paymentMethod === "Saldo" && Number(student.saldo ?? 0) < cartTotal) {
          setErrorMessage("Saldo tidak mencukupi untuk melakukan pembayaran.");
          return;
       }
@@ -162,10 +133,10 @@ export default function BeliProdukPage() {
          const orderPayload = {
             id: orderId,
             nis_siswa: student.nis,
-            total_harga: totalAmount,
+            total_harga: cartTotal,
             metode_pembayaran: paymentMethod,
             status_order: "Menunggu",
-            status_pembayaran: "Belum Lunas",
+            status_pembayaran: paymentMethod === "Saldo" ? "Lunas" : "Belum Lunas",
             keterangan: paymentMethod === "Saldo" ? "Menunggu konfirmasi admin untuk pembayaran saldo" : "Menunggu konfirmasi admin untuk hutang",
          };
 
@@ -182,13 +153,24 @@ export default function BeliProdukPage() {
          const { error: detailError } = await supabase.from("detail_order_siswa").insert(detailPayload);
          if (detailError) throw detailError;
 
+         if (paymentMethod === "Saldo") {
+            const currentSaldo = Number(student.saldo ?? 0);
+            const newSaldo = currentSaldo - cartTotal;
+            if (newSaldo < 0) throw new Error("Saldo tidak cukup untuk melakukan pembayaran.");
+
+            const { error: updateSaldoError } = await supabase.from("siswa").update({ saldo: newSaldo }).eq("nis", student.nis);
+            if (updateSaldoError) throw updateSaldoError;
+
+            setStudent((current) => (current ? { ...current, saldo: newSaldo } : current));
+         }
+
          setCartItems([]);
-         setMessage("Pesanan berhasil dikirim ke admin. Silakan tunggu konfirmasi.");
+         setMessage(paymentMethod === "Saldo" ? "Pesanan berhasil dikirim dan saldo Anda langsung dipotong." : "Pesanan berhasil dikirim ke admin. Silakan tunggu konfirmasi.");
          setOrders((current) => [
             {
                id: orderId,
                created_at: new Date().toISOString(),
-               total_harga: totalAmount,
+               total_harga: cartTotal,
                metode_pembayaran: paymentMethod,
                status_order: "Menunggu",
                status_pembayaran: "Belum Lunas",
@@ -201,191 +183,152 @@ export default function BeliProdukPage() {
       } finally {
          setSubmitting(false);
       }
-   };
+   }
 
    return (
-      <div className="beli-produk-page">
-         {/* toast container */}
-         <div className="toast-container">
-            {toast.visible && <div className={`toast show`}>{toast.message}</div>}
-         </div>
-         <div className="beli-produk-page__header">
+      <div className="guru-beli-produk">
+         {message && <div className="page-message page-message--success">{message}</div>}
+         {errorMessage && <div className="page-message page-message--error">{errorMessage}</div>}
+
+         <div className="beli-produk-section">
             <div>
-               <h1>Beli Produk</h1>
-               <p className="beli-produk-page__subtitle">
-                  Pilih produk koperasi, masukkan ke keranjang, lalu kirim pesanan untuk dikonfirmasi admin.
-               </p>
-            </div>
-            {student && (
-               <div className="beli-produk-summary">
-                  <div className="summary-card">
-                     <span className="summary-card__label">Saldo</span>
-                     <strong className="summary-card__value">Rp {Number(student.saldo ?? 0).toLocaleString()}</strong>
-                  </div>
-                  <div className="summary-card">
-                     <span className="summary-card__label">Hutang</span>
-                     <strong className="summary-card__value">Rp {Number(student.total_hutang ?? 0).toLocaleString()}</strong>
-                  </div>
+               <input
+                  type="text"
+                  placeholder="Cari produk..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  style={{ width: "100%", padding: "0.5rem", marginBottom: "1rem", border: "1px solid #ccc", borderRadius: "4px" }}
+               />
+               <div className="beli-produk-products">
+                  {filteredProducts.map((product) => {
+                     const cartItem = cartItems.find((item) => item.id === product.id);
+                     return (
+                        <div key={product.id} className="product-card">
+                           <div className="product-card__name">{product.nama_produk}</div>
+                           <div className="product-card__info">
+                              <div className="product-card__price">Rp {Number(product.harga).toLocaleString()}</div>
+                              <div className="product-card__stok">Stok: {product.stok}</div>
+                           </div>
+                           <div className="product-card__actions">
+                              <input
+                                 type="number"
+                                 min="1"
+                                 value={cartItem?.quantity || 1}
+                                 onChange={(e) => {
+                                    const qty = parseInt(e.target.value) || 1;
+                                    if (cartItem) {
+                                       updateQuantity(product.id, qty);
+                                    }
+                                 }}
+                                 className="product-card__input"
+                              />
+                              <button
+                                 onClick={() => addToCart(product)}
+                                 className="btn btn--primary"
+                                 style={{ fontSize: "0.85rem", padding: "0.25rem 0.75rem" }}
+                              >
+                                 {cartItem ? "+" : "Tambah"}
+                              </button>
+                           </div>
+                        </div>
+                     );
+                  })}
                </div>
+            </div>
+
+            <div className="beli-produk-cart">
+               <div className="beli-produk-cart__title">Keranjang</div>
+
+               {cartItems.length === 0 ? (
+                  <div style={{ color: "#999", textAlign: "center", padding: "1rem" }}>Keranjang kosong</div>
+               ) : (
+                  <>
+                     <div className="cart-items">
+                        {cartItems.map((item) => (
+                           <div key={item.id} className="cart-item">
+                              <div>
+                                 <div className="cart-item__name">{item.nama_produk}</div>
+                                 <div className="cart-item__qty">
+                                    Rp {Number(item.harga).toLocaleString()} x {item.quantity}
+                                 </div>
+                              </div>
+                              <div className="cart-item__remove" onClick={() => removeFromCart(item.id)}>
+                                 ✕
+                              </div>
+                           </div>
+                        ))}
+                     </div>
+
+                     <div className="cart-summary">
+                        <div className="cart-summary__item">
+                           <span>Subtotal</span>
+                           <span>Rp {Number(cartTotal).toLocaleString()}</span>
+                        </div>
+                        <div className="cart-summary__total">
+                           <span>Total</span>
+                           <span>Rp {Number(cartTotal).toLocaleString()}</span>
+                        </div>
+                     </div>
+
+                     <div className="payment-method">
+                        <label className="payment-method__label">Metode Pembayaran</label>
+                        <select
+                           value={paymentMethod}
+                           onChange={(e) => setPaymentMethod(e.target.value)}
+                           className="payment-method__select"
+                        >
+                           <option value="Saldo">Saldo</option>
+                           <option value="Hutang">Hutang</option>
+                        </select>
+                     </div>
+
+                     <button onClick={handleSubmitOrder} disabled={submitting} className="btn btn--primary" style={{ width: "100%" }}>
+                        {submitting ? "Memproses..." : "Pesan Sekarang"}
+                     </button>
+                  </>
+               )}
+            </div>
+         </div>
+
+         <div className="orders-section">
+            <div className="orders-section__title">Pesanan Terbaru</div>
+            {orders.length === 0 ? (
+               <div style={{ color: "#999", textAlign: "center", padding: "1rem" }}>Tidak ada pesanan.</div>
+            ) : (
+               <table className="orders-table">
+                  <thead>
+                     <tr>
+                        <th>ID</th>
+                        <th>Total</th>
+                        <th>Metode</th>
+                        <th>Status Order</th>
+                        <th>Status Bayar</th>
+                        <th>Tanggal</th>
+                     </tr>
+                  </thead>
+                  <tbody>
+                     {orders.map((order) => (
+                        <tr key={order.id}>
+                           <td>{order.id.substring(0, 12)}</td>
+                           <td>Rp {Number(order.total_harga).toLocaleString()}</td>
+                           <td>{order.metode_pembayaran}</td>
+                           <td>
+                              <span className={`status-badge ${order.status_order === "Dikonfirmasi" ? "status-badge--success" : order.status_order === "Ditolak" ? "status-badge--error" : "status-badge--warning"}`}>
+                                 {order.status_order}
+                              </span>
+                           </td>
+                           <td>
+                              <span className={`status-badge ${order.status_pembayaran === "Lunas" ? "status-badge--success" : "status-badge--error"}`}>
+                                 {order.status_pembayaran}
+                              </span>
+                           </td>
+                           <td>{new Date(order.created_at).toLocaleDateString("id-ID")}</td>
+                        </tr>
+                     ))}
+                  </tbody>
+               </table>
             )}
          </div>
-
-         {loading ? (
-            <Loading message="Memuat produk..." size="small" />
-         ) : (
-            <>
-               {errorMessage && <div className="page-message page-message--error">{errorMessage}</div>}
-               {message && <div className="page-message page-message--success">{message}</div>}
-
-               <div className="beli-produk-grid">
-                  <div className="beli-produk-panel beli-produk-panel--products">
-                     <div className="panel-header">
-                        <div>
-                           <h2>Produk Koperasi</h2>
-                           <p>Pilih barang dan tambahkan ke keranjang.</p>
-                        </div>
-                        <div className="search-field">
-                           <input
-                              type="search"
-                              placeholder="Cari produk..."
-                              value={searchQuery}
-                              onChange={(e) => setSearchQuery(e.target.value)}
-                           />
-                        </div>
-                     </div>
-
-                     <div className="product-grid">
-                        {filteredProducts.length === 0 ? (
-                           <div className="empty-state">Produk tidak ditemukan.</div>
-                        ) : (
-                           filteredProducts.map((product) => (
-                              <div key={product.id} className="product-card">
-                                 <div className="product-card__name">{product.nama_produk}</div>
-                                 <div className="product-card__meta">Rp {Number(product.harga).toLocaleString()}</div>
-                                 <div className="product-card__stock">Stok: {product.stok}</div>
-                                 <button
-                                    className="btn btn--primary product-card__button"
-                                    disabled={product.stok <= 0}
-                                    onClick={() => addToCart(product)}
-                                 >
-                                    {product.stok > 0 ? "Tambah ke Keranjang" : "Habis"}
-                                 </button>
-                              </div>
-                           ))
-                        )}
-                     </div>
-                  </div>
-
-                  <div ref={cartRef} className="beli-produk-panel beli-produk-panel--cart">
-                     <div className="panel-header">
-                        <div>
-                           <h2>Keranjang</h2>
-                           <p>Atur item sebelum mengirim order.</p>
-                        </div>
-                        {cartItems.length > 0 && (
-                           <div className="cart-badge">{cartItems.length}</div>
-                        )}
-                     </div>
-
-                     <div className="cart-list">
-                        {cartItems.length === 0 ? (
-                           <div className="empty-state">Keranjang masih kosong.</div>
-                        ) : (
-                           cartItems.map((item) => (
-                              <div key={item.id} className="cart-item">
-                                 <div className="cart-item__info">
-                                    <div className="cart-item__name">{item.nama_produk}</div>
-                                    <div className="cart-item__meta">Rp {Number(item.harga).toLocaleString()} x {item.quantity}</div>
-                                 </div>
-                                 <div className="cart-item__controls">
-                                    <input
-                                       type="number"
-                                       min={1}
-                                       max={item.stok}
-                                       value={item.quantity}
-                                       onChange={(e) => updateQuantity(item.id, e.target.value)}
-                                    />
-                                    <button className="btn btn--secondary" onClick={() => removeCartItem(item.id)}>
-                                       Hapus
-                                    </button>
-                                 </div>
-                              </div>
-                           ))
-                        )}
-                     </div>
-
-                     <div className="order-box">
-                        <div className="order-box__row">
-                           <span>Total Belanja</span>
-                           <strong>Rp {totalAmount.toLocaleString()}</strong>
-                        </div>
-                        <div className="order-box__row">
-                           <label htmlFor="payment-method">Metode Pembayaran</label>
-                           <select id="payment-method" value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)}>
-                              <option value="Saldo">Saldo</option>
-                              <option value="Hutang">Hutang</option>
-                           </select>
-                        </div>
-                        <button
-                           className="btn btn--primary order-box__button"
-                           onClick={handleSubmitOrder}
-                           disabled={
-                              submitting ||
-                              cartItems.length === 0 ||
-                              (paymentMethod === "Saldo" && Number(student?.saldo ?? 0) < totalAmount)
-                           }
-                        >
-                           {submitting ? "Mengirim order..." : "Kirim Pesanan"}
-                        </button>
-                        {paymentMethod === "Saldo" && Number(student?.saldo ?? 0) < totalAmount && (
-                           <div className="hint-text">Saldo tidak cukup. Isi saldo terlebih dahulu atau pilih Hutang.</div>
-                        )}
-                     </div>
-                  </div>
-               </div>
-
-               <div className="beli-produk-panel">
-                  <div className="panel-header">
-                     <div>
-                        <h2>Riwayat Order</h2>
-                        <p>Order terakhir dikirim ke admin.</p>
-                     </div>
-                  </div>
-                  <div className="history-table-wrap">
-                     <table className="history-table">
-                        <thead>
-                           <tr>
-                              <th>Tanggal</th>
-                              <th>Total</th>
-                              <th>Metode</th>
-                              <th>Status Order</th>
-                              <th>Status Bayar</th>
-                           </tr>
-                        </thead>
-                        <tbody>
-                           {orders.length === 0 ? (
-                              <tr>
-                                 <td className="history-empty" colSpan={5}>
-                                    Belum ada order.
-                                 </td>
-                              </tr>
-                           ) : (
-                              orders.map((order) => (
-                                 <tr key={order.id}>
-                                    <td>{new Date(order.created_at).toLocaleString("id-ID")}</td>
-                                    <td>Rp {Number(order.total_harga || 0).toLocaleString()}</td>
-                                    <td>{order.metode_pembayaran}</td>
-                                    <td>{order.status_order}</td>
-                                    <td>{order.status_pembayaran}</td>
-                                 </tr>
-                              ))
-                           )}
-                        </tbody>
-                     </table>
-                  </div>
-               </div>
-            </>
-         )}
       </div>
    );
 }

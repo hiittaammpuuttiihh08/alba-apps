@@ -1,303 +1,248 @@
-.beli-produk-page {
-   display: flex;
-   flex-direction: column;
-   gap: 1.5rem;
-}
-
-.beli-produk-page__header {
-   display: flex;
-   justify-content: space-between;
-   gap: 1rem;
-   align-items: flex-start;
-}
-
-.beli-produk-page__subtitle {
-   margin-top: 0.5rem;
-   color: #555;
-}
-
-.beli-produk-summary {
-   display: grid;
-   grid-template-columns: repeat(2, minmax(0, 1fr));
-   gap: 1rem;
-}
-
-.summary-card {
-   background: #fff;
-   border: 1px solid #e2e8f0;
-   border-radius: 12px;
+.guru-beli-produk {
    padding: 1rem;
 }
 
-.summary-card__label {
-   display: block;
-   color: #64748b;
-   font-size: 0.88rem;
-   margin-bottom: 0.5rem;
-}
-
-.summary-card__value {
-   font-size: 1.25rem;
-}
-
-.beli-produk-grid {
+.beli-produk-section {
    display: grid;
-   grid-template-columns: 2fr 1fr;
-   gap: 1.5rem;
+   grid-template-columns: 1fr 400px;
+   gap: 2rem;
+   margin-bottom: 2rem;
 }
 
-/* let panels size to their content instead of stretching */
-.beli-produk-grid {
-   align-items: start;
-}
-
-.beli-produk-panel {
-   background: #fff;
-   border: 1px solid #e2e8f0;
-   border-radius: 16px;
-   padding: 1.25rem;
-}
-
-.beli-produk-panel--products {
-   min-height: 420px;
-}
-
-.beli-produk-panel--cart {
-   /* let cart hug its content */
-   min-height: auto;
-   display: flex;
-   flex-direction: column;
-   justify-content: flex-start;
-}
-
-/* allow cart list to grow naturally so the panel height follows its content */
-.beli-produk-panel--cart .cart-list {
-   max-height: none;
-   overflow: visible;
-}
-
-/* toast */
-.toast-container {
-   position: fixed;
-   top: 1rem;
-   right: 1rem;
-   z-index: 60;
-   pointer-events: none;
-}
-
-.toast {
-   pointer-events: auto;
-   background: rgba(17, 24, 39, 0.95);
-   color: #fff;
-   padding: 0.6rem 0.9rem;
-   border-radius: 10px;
-   box-shadow: 0 6px 18px rgba(15, 23, 42, 0.2);
-   font-weight: 600;
-   font-size: 0.95rem;
-   opacity: 0;
-   transform: translateY(-6px);
-   transition: opacity 200ms ease, transform 200ms ease;
-}
-
-.toast.show {
-   opacity: 1;
-   transform: translateY(0);
-}
-
-.cart-badge {
-   background: #2563eb;
-   color: #fff;
-   padding: 6px 10px;
-   border-radius: 999px;
-   font-weight: 700;
-   font-size: 0.9rem;
-}
-
-.panel-header {
-   display: flex;
-   justify-content: space-between;
-   gap: 1rem;
-   align-items: center;
-   margin-bottom: 1.25rem;
-}
-
-.search-field input {
-   width: 100%;
-   max-width: 320px;
-   border: 1px solid #cbd5e1;
-   border-radius: 999px;
-   padding: 0.75rem 1rem;
-   outline: none;
-}
-
-.product-grid {
+.beli-produk-products {
    display: grid;
-   grid-template-columns: repeat(2, minmax(0, 1fr));
+   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
    gap: 1rem;
 }
 
 .product-card {
-   border: 1px solid #e2e8f0;
-   border-radius: 14px;
+   background: white;
+   border: 1px solid #e0e0e0;
+   border-radius: 8px;
    padding: 1rem;
    display: flex;
    flex-direction: column;
-   gap: 0.75rem;
 }
 
 .product-card__name {
-   font-weight: 700;
-   color: #111827;
+   font-weight: 600;
+   margin-bottom: 0.5rem;
+   color: #2c3e50;
 }
 
-.product-card__meta,
-.product-card__stock {
-   color: #475569;
-   font-size: 0.95rem;
-}
-
-.product-card__button {
-   margin-top: auto;
-}
-
-.empty-state {
-   color: #64748b;
-   padding: 2rem;
-   text-align: center;
-   border: 1px dashed #cbd5e1;
-   border-radius: 12px;
-}
-
-.cart-list {
+.product-card__info {
    display: grid;
-   gap: 0.75rem;
-   margin-bottom: 1rem;
-}
-
-.cart-item {
-   border: 1px solid #e2e8f0;
-   border-radius: 14px;
-   padding: 0.9rem;
-   display: grid;
-   gap: 0.75rem;
-}
-
-.cart-item__info {
-   display: flex;
-   flex-direction: column;
    gap: 0.25rem;
+   margin-bottom: 1rem;
+   flex-grow: 1;
 }
 
-.cart-item__name {
-   font-weight: 700;
+.product-card__price {
+   font-size: 1.1rem;
+   font-weight: bold;
+   color: #27ae60;
 }
 
-.cart-item__meta {
-   color: #475569;
-   font-size: 0.95rem;
+.product-card__stok {
+   font-size: 0.85rem;
+   color: #666;
 }
 
-.cart-item__controls {
-   display: grid;
-   grid-template-columns: 1fr auto;
-   gap: 0.75rem;
+.product-card__actions {
+   display: flex;
+   gap: 0.5rem;
    align-items: center;
 }
 
-.cart-item__controls input {
-   width: 100%;
-   border: 1px solid #cbd5e1;
-   border-radius: 10px;
-   padding: 0.6rem 0.75rem;
+.product-card__input {
+   flex: 1;
+   padding: 0.25rem;
+   border: 1px solid #ccc;
+   border-radius: 4px;
+   text-align: center;
 }
 
-.order-box {
-   border-top: 1px solid #e2e8f0;
-   padding-top: 1rem;
+.beli-produk-cart {
+   background: white;
+   border: 1px solid #e0e0e0;
+   border-radius: 8px;
+   padding: 1.5rem;
+   height: fit-content;
+   position: sticky;
+   top: 1rem;
+}
+
+.beli-produk-cart__title {
+   font-size: 1.1rem;
+   font-weight: 600;
+   margin-bottom: 1rem;
+   padding-bottom: 1rem;
+   border-bottom: 2px solid #e0e0e0;
+}
+
+.cart-items {
    display: grid;
    gap: 1rem;
+   margin-bottom: 1rem;
+   max-height: 300px;
+   overflow-y: auto;
 }
 
-.order-box__row {
-   display: grid;
-   gap: 0.5rem;
+.cart-item {
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+   padding: 0.5rem;
+   border-bottom: 1px solid #f0f0f0;
 }
 
-.order-box__row label,
-.order-box__row span {
-   color: #475569;
+.cart-item__name {
+   flex: 1;
+   font-size: 0.9rem;
 }
 
-.order-box__button {
+.cart-item__qty {
+   color: #666;
+   font-size: 0.85rem;
+}
+
+.cart-item__remove {
+   cursor: pointer;
+   color: #e74c3c;
+   font-weight: bold;
+}
+
+.cart-summary {
+   background: #f5f5f5;
+   padding: 1rem;
+   border-radius: 4px;
+   margin-bottom: 1rem;
+}
+
+.cart-summary__item {
+   display: flex;
+   justify-content: space-between;
+   margin-bottom: 0.5rem;
+   font-size: 0.9rem;
+}
+
+.cart-summary__total {
+   display: flex;
+   justify-content: space-between;
+   margin-top: 0.75rem;
+   padding-top: 0.75rem;
+   border-top: 1px solid #ddd;
+   font-weight: bold;
+   font-size: 1rem;
+}
+
+.payment-method {
+   margin-bottom: 1rem;
+}
+
+.payment-method__label {
+   display: block;
+   font-size: 0.85rem;
+   font-weight: 600;
+   margin-bottom: 0.5rem;
+   color: #666;
+}
+
+.payment-method__select {
    width: 100%;
+   padding: 0.5rem;
+   border: 1px solid #ccc;
+   border-radius: 4px;
 }
 
-.hint-text {
-   color: #d97706;
-   font-size: 0.94rem;
+.orders-section {
+   background: white;
+   border: 1px solid #e0e0e0;
+   border-radius: 8px;
+   padding: 1.5rem;
 }
 
-.history-table-wrap {
-   overflow-x: auto;
+.orders-section__title {
+   font-size: 1.1rem;
+   font-weight: 600;
+   margin-bottom: 1rem;
+   padding-bottom: 1rem;
+   border-bottom: 2px solid #e0e0e0;
 }
 
-.history-table {
+.orders-table {
    width: 100%;
    border-collapse: collapse;
 }
 
-.history-table th,
-.history-table td {
-   border: 1px solid #e2e8f0;
-   padding: 0.85rem;
+.orders-table thead {
+   background: #f5f5f5;
+}
+
+.orders-table th {
    text-align: left;
+   padding: 0.75rem;
+   font-weight: 600;
+   font-size: 0.85rem;
+   color: #666;
 }
 
-.history-table th {
-   background: #f8fafc;
+.orders-table td {
+   padding: 0.75rem;
+   border-bottom: 1px solid #f0f0f0;
+   font-size: 0.9rem;
 }
 
-.history-empty {
-   padding: 1.5rem;
-   color: #64748b;
+.status-badge {
+   display: inline-block;
+   padding: 0.25rem 0.75rem;
+   border-radius: 4px;
+   font-size: 0.8rem;
+   font-weight: 500;
 }
 
-@media (max-width: 1200px) {
-   .beli-produk-grid {
-      grid-template-columns: 1fr;
-   }
+.status-badge--success {
+   background-color: #d4edda;
+   color: #155724;
+}
 
-   .product-grid {
-      grid-template-columns: 1fr;
-   }
+.status-badge--error {
+   background-color: #f8d7da;
+   color: #721c24;
+}
+
+.status-badge--warning {
+   background-color: #fff3cd;
+   color: #856404;
+}
+
+.page-message {
+   padding: 0.9rem 1rem;
+   margin-bottom: 1rem;
+   border-radius: 6px;
+}
+
+.page-message--success {
+   background-color: #d4edda;
+   color: #155724;
+}
+
+.page-message--error {
+   background-color: #f8d7da;
+   color: #721c24;
 }
 
 @media (max-width: 768px) {
-
-   .beli-produk-page__header,
-   .panel-header {
-      flex-direction: column;
-      align-items: flex-start;
-   }
-
-   .beli-produk-summary {
-      grid-template-columns: 1fr;
-      width: 100%;
-   }
-
-   .beli-produk-panel {
-      padding: 1rem;
-   }
-
-   .cart-item__controls {
+   .beli-produk-section {
       grid-template-columns: 1fr;
    }
 
-   .product-grid {
-      grid-template-columns: 1fr;
+   .beli-produk-cart {
+      position: relative;
+      top: auto;
    }
 
-   .search-field input {
-      max-width: 100%;
+   .beli-produk-products {
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
    }
 }

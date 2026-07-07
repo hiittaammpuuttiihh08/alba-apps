@@ -69,7 +69,7 @@ export default function GuruSaldoPage() {
                   .order("created_at", { ascending: false }),
                supabase
                   .from("order_guru")
-                  .select("id,total_harga,metode_pembayaran,status_pembayaran,created_at")
+                  .select("id,total_harga,metode_pembayaran,status_pembayaran,status_order,created_at")
                   .eq("nip_guru", activeTeacher.nip)
                   .eq("metode_pembayaran", "Saldo")
                   .order("created_at", { ascending: false }),
@@ -97,11 +97,13 @@ export default function GuruSaldoPage() {
 
             if (paymentData) {
                paymentData.forEach((item) => {
+                  const isRefunded = item.status_order === "Ditolak" && item.status_pembayaran === "Lunas";
                   combinedHistory.push({
                      id: `order_${item.id}`,
-                     type: "Saldo Keluar",
-                     amount: item.total_harga,
-                     method: "Pembayaran Saldo",
+                     type: isRefunded ? "Saldo Masuk" : "Saldo Keluar",
+                     amount: isRefunded ? item.total_harga : item.total_harga,
+                     method: isRefunded ? "Refund Order Ditolak" : "Pembayaran Saldo",
+                     description: isRefunded ? "Saldo dikembalikan karena order ditolak" : undefined,
                      date: item.created_at,
                   });
                });

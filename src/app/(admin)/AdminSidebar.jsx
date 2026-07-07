@@ -10,6 +10,7 @@ const navItems = [
    { href: "/topup-saldo", label: "Top-Up Saldo" },
    { href: "/hutang", label: "Hutang" },
    { href: "/order-siswa", label: "Order Siswa" },
+   { href: "/order-guru", label: "Order Guru" },
    { href: "/laporan", label: "Laporan" },
    { href: "/produk", label: "Produk" },
    { href: "/siswa", label: "Siswa" },

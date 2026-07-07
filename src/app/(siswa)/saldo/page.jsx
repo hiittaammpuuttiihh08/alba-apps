@@ -61,7 +61,7 @@ export default function SiswaSaldoPage() {
 
             setStudent(activeStudent);
 
-            const [{ data: topupData, error: topupError }, { data: paymentData, error: paymentError }] = await Promise.all([
+            const [{ data: topupData, error: topupError }, { data: paymentData, error: paymentError }, { data: orderData, error: orderError }] = await Promise.all([
                supabase
                   .from("topup_saldo")
                   .select("id,jumlah,metode,keterangan,created_at")
@@ -73,7 +73,18 @@ export default function SiswaSaldoPage() {
                   .eq("nis_siswa", activeStudent.nis)
                   .in("metode_pembayaran", ["Pelunasan", "Saldo"])
                   .order("created_at", { ascending: false }),
+               supabase
+                  .from("order_siswa")
+                  .select("id,total_harga,metode_pembayaran,status_pembayaran,status_order,created_at")
+                  .eq("nis_siswa", activeStudent.nis)
+                  .eq("metode_pembayaran", "Saldo")
+                  .order("created_at", { ascending: false }),
             ]);
+
+            if (topupError || paymentError || orderError) {
+               setHistoryItems([]);
+               return;
+            }
 
             if (topupError || paymentError) {
                setHistoryItems([]);
@@ -98,9 +109,21 @@ export default function SiswaSaldoPage() {
                description: item.status_pembayaran || "",
             }));
 
+            const refundHistory = (orderData ?? [])
+               .filter((item) => item.status_order === "Ditolak" && item.status_pembayaran === "Lunas")
+               .map((item) => ({
+                  id: `refund_${item.id}`,
+                  created_at: item.created_at,
+                  amount: Number(item.total_harga),
+                  type: "Saldo Masuk",
+                  method: "Refund Order Ditolak",
+                  description: "Saldo dikembalikan karena order ditolak",
+               }));
+
             setHistoryItems([
                ...topupHistory,
                ...outgoingHistory,
+               ...refundHistory,
             ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)));
          } catch (error) {
             console.error(error);
@@ -116,8 +139,8 @@ export default function SiswaSaldoPage() {
    return (
       <div className="page-content">
          <div className="page-header">
-            <h1>Saldo Siswa</h1>
-            <p>Informasi saldo dan riwayat mutasi saldo masuk dan keluar untuk akun Anda.</p>
+            <h1>Saldo Saya</h1>
+            <p>Pantau saldo dan riwayat transaksi Anda.</p>
          </div>
 
          {loading ? (
@@ -128,15 +151,16 @@ export default function SiswaSaldoPage() {
             <div className="page-message">Siswa tidak ditemukan.</div>
          ) : (
             <>
-               <div className="saldo-card">
-                  <div className="saldo-card__label">Saldo saat ini</div>
-                  <div className="saldo-card__value">Rp {Number(student.saldo ?? 0).toLocaleString()}</div>
-                  <div className="saldo-card__meta">NIS: {student.nis} · {student.nama_siswa}</div>
+               <div className="saldo-overview">
+                  <div className="saldo-card">
+                     <div className="saldo-card__label">Saldo Saat Ini</div>
+                     <div className="saldo-card__value">Rp {Number(student.saldo ?? 0).toLocaleString()}</div>
+                     <div className="saldo-card__meta">NIS: {student.nis} · {student.nama_siswa}</div>
+                  </div>
                </div>
 
                <div className="history-section">
-                  <h2>Riwayat Saldo</h2>
-                  <p>Setiap entri di bawah menjelaskan alasan saldo masuk atau keluar untuk akun Anda.</p>
+                  <div className="history-section__title">Riwayat Saldo</div>
 
                   {historyItems.length === 0 ? (
                      <div className="page-message">Belum ada riwayat saldo.</div>
@@ -156,7 +180,11 @@ export default function SiswaSaldoPage() {
                                  <tr key={item.id}>
                                     <td>{new Date(item.created_at).toLocaleString("id-ID")}</td>
                                     <td>Rp {Number(item.amount).toLocaleString()}</td>
-                                    <td>{item.type}</td>
+                                    <td>
+                                       <span className={item.type === "Saldo Masuk" ? "history-badge history-badge--in" : "history-badge history-badge--out"}>
+                                          {item.type}
+                                       </span>
+                                    </td>
                                     <td>{formatHistoryDescription(item)}</td>
                                  </tr>
                               ))}

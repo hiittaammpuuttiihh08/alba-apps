@@ -3,11 +3,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/utils/supabase";
 import Loading from "@/components/Loading";
-import "./order-siswa.css";
+import "./order-guru.css";
 
 const supabase = createClient();
 
-export default function OrderSiswaPage() {
+export default function OrderGuruPage() {
    const [orders, setOrders] = useState([]);
    const [selectedOrderId, setSelectedOrderId] = useState(null);
    const [orderItems, setOrderItems] = useState([]);
@@ -17,7 +17,7 @@ export default function OrderSiswaPage() {
    const [errorMessage, setErrorMessage] = useState("");
 
    useEffect(() => {
-      fetchOrders();
+      void fetchOrders();
    }, []);
 
    async function fetchOrders() {
@@ -25,16 +25,15 @@ export default function OrderSiswaPage() {
       setErrorMessage("");
       try {
          const { data, error } = await supabase
-            .from("order_siswa")
-            .select(`id,created_at,total_harga,metode_pembayaran,status_order,status_pembayaran,keterangan,siswa(nis,nama_siswa,kelas,saldo,total_hutang)`)
+            .from("order_guru")
+            .select(`id,created_at,total_harga,metode_pembayaran,status_order,status_pembayaran,keterangan,guru(nip,nama_guru,saldo,total_hutang)`)
             .order("created_at", { ascending: false });
 
          if (error) throw error;
-         const orderList = data ?? [];
-         setOrders(orderList);
+         setOrders(data ?? []);
       } catch (error) {
          console.error(error);
-         setErrorMessage("Gagal memuat order siswa.");
+         setErrorMessage("Gagal memuat order guru.");
       } finally {
          setLoading(false);
       }
@@ -45,7 +44,7 @@ export default function OrderSiswaPage() {
       setErrorMessage("");
       try {
          const { data, error } = await supabase
-            .from("detail_order_siswa")
+            .from("detail_order_guru")
             .select("id,produk_id,jumlah,harga_satuan,produk(nama_produk)")
             .eq("order_id", orderId);
 
@@ -64,15 +63,8 @@ export default function OrderSiswaPage() {
       [orders, selectedOrderId]
    );
 
-   const pendingOrders = useMemo(
-      () => orders.filter((order) => order.status_order === "Menunggu"),
-      [orders]
-   );
-
-   const completedOrders = useMemo(
-      () => orders.filter((order) => order.status_order !== "Menunggu"),
-      [orders]
-   );
+   const pendingOrders = useMemo(() => orders.filter((order) => order.status_order === "Menunggu"), [orders]);
+   const completedOrders = useMemo(() => orders.filter((order) => order.status_order !== "Menunggu"), [orders]);
 
    const orderStats = useMemo(() => {
       return orders.reduce(
@@ -119,10 +111,7 @@ export default function OrderSiswaPage() {
       setActionLoading(true);
       setErrorMessage("");
       try {
-         const { error: orderError } = await supabase
-            .from("order_siswa")
-            .update(updates)
-            .eq("id", order.id);
+         const { error: orderError } = await supabase.from("order_guru").update(updates).eq("id", order.id);
          if (orderError) throw orderError;
 
          setMessage(notification);
@@ -139,19 +128,19 @@ export default function OrderSiswaPage() {
    }
 
    async function handleConfirm(order) {
-      if (!order?.siswa) {
-         setErrorMessage("Data siswa tidak tersedia untuk order ini.");
+      if (!order?.guru) {
+         setErrorMessage("Data guru tidak tersedia untuk order ini.");
          return;
       }
 
-      const currentHutang = Number(order.siswa.total_hutang ?? 0);
+      const currentHutang = Number(order.guru.total_hutang ?? 0);
       const totalHarga = Number(order.total_harga ?? 0);
       const updates = { status_order: "Dikonfirmasi" };
 
       if (order.metode_pembayaran === "Saldo") {
          setActionLoading(true);
          try {
-            const { error: orderError } = await supabase.from("order_siswa").update({ ...updates, status_pembayaran: "Lunas" }).eq("id", order.id);
+            const { error: orderError } = await supabase.from("order_guru").update({ ...updates, status_pembayaran: "Lunas" }).eq("id", order.id);
 
             if (orderError) throw orderError;
 
@@ -172,12 +161,13 @@ export default function OrderSiswaPage() {
          setActionLoading(true);
          try {
             const [{ error: updateHutangError }, { error: orderError }] = await Promise.all([
-               supabase.from("siswa").update({ total_hutang: newHutang }).eq("nis", order.siswa.nis),
-               supabase.from("order_siswa").update({ ...updates, status_pembayaran: "Belum Lunas" }).eq("id", order.id),
+               supabase.from("guru").update({ total_hutang: newHutang }).eq("nip", order.guru.nip),
+               supabase.from("order_guru").update({ ...updates, status_pembayaran: "Belum Lunas" }).eq("id", order.id),
             ]);
+
             if (updateHutangError || orderError) throw updateHutangError || orderError;
 
-            setMessage("Order hutang berhasil dikonfirmasi dan total hutang siswa diperbarui.");
+            setMessage("Order hutang berhasil dikonfirmasi dan total hutang guru diperbarui.");
             await fetchOrders();
             if (selectedOrderId === order.id) await fetchOrderItems(order.id);
          } catch (error) {
@@ -193,8 +183,8 @@ export default function OrderSiswaPage() {
    }
 
    async function handleReject(order) {
-      if (!order?.siswa) {
-         setErrorMessage("Data siswa tidak tersedia untuk order ini.");
+      if (!order?.guru) {
+         setErrorMessage("Data guru tidak tersedia untuk order ini.");
          return;
       }
 
@@ -211,20 +201,20 @@ export default function OrderSiswaPage() {
 
          const operations = [];
          if (shouldRefundSaldo) {
-            const newSaldo = Number(order.siswa.saldo ?? 0) + totalHarga;
-            operations.push(supabase.from("siswa").update({ saldo: newSaldo }).eq("nis", order.siswa.nis));
+            const newSaldo = Number(order.guru.saldo ?? 0) + totalHarga;
+            operations.push(supabase.from("guru").update({ saldo: newSaldo }).eq("nip", order.guru.nip));
          }
          if (shouldReduceHutang) {
-            const newHutang = Math.max(0, Number(order.siswa.total_hutang ?? 0) - totalHarga);
-            operations.push(supabase.from("siswa").update({ total_hutang: newHutang }).eq("nis", order.siswa.nis));
+            const newHutang = Math.max(0, Number(order.guru.total_hutang ?? 0) - totalHarga);
+            operations.push(supabase.from("guru").update({ total_hutang: newHutang }).eq("nip", order.guru.nip));
          }
-         operations.push(supabase.from("order_siswa").update(updates).eq("id", order.id));
+         operations.push(supabase.from("order_guru").update(updates).eq("id", order.id));
 
          if (operations.length > 0) {
             await Promise.all(operations);
          }
 
-         setMessage(shouldRefundSaldo ? "Order ditolak dan saldo siswa dikembalikan." : "Order ditolak.");
+         setMessage(shouldRefundSaldo ? "Order ditolak dan saldo guru dikembalikan." : "Order ditolak.");
          await fetchOrders();
          if (selectedOrderId === order.id) {
             await fetchOrderItems(order.id);
@@ -238,24 +228,24 @@ export default function OrderSiswaPage() {
    }
 
    return (
-      <div className="order-siswa-page">
+      <div className="order-guru-page">
          <div className="page-header">
-            <h1>Order Siswa</h1>
-            <p>Kelola order self-service dari siswa dan konfirmasi status pembayaran atau hutang.</p>
+            <h1>Order Guru</h1>
+            <p>Kelola order self-service dari guru dan konfirmasi status pembayaran atau hutang.</p>
          </div>
 
          {loading ? (
-            <Loading message="Memuat order siswa..." />
+            <Loading message="Memuat order guru..." />
          ) : (
             <>
                {errorMessage && <div className="page-message page-message--error">{errorMessage}</div>}
                {message && <div className="page-message page-message--success">{message}</div>}
 
-               <div className="order-siswa-summary">
+               <div className="order-guru-summary">
                   <div className="summary-card summary-card--accent">
                      <span className="summary-card__label">Total Order</span>
                      <strong className="summary-card__value">{orderStats.total}</strong>
-                     <span className="summary-card__caption">Semua order siswa</span>
+                     <span className="summary-card__caption">Semua order guru</span>
                   </div>
                   <div className="summary-card summary-card--warning">
                      <span className="summary-card__label">Menunggu</span>
@@ -274,7 +264,7 @@ export default function OrderSiswaPage() {
                   </div>
                </div>
 
-               <section className="order-siswa-list-panel">
+               <section className="order-guru-list-panel">
                   <div className="panel-title">Daftar Order</div>
 
                   <div className="order-group-card">
@@ -297,8 +287,8 @@ export default function OrderSiswaPage() {
                               >
                                  <div className="order-card__top">
                                     <div>
-                                       <div className="order-card__name">{order.siswa?.nama_siswa ?? "-"}</div>
-                                       <div className="order-card__nis">NIS {order.siswa?.nis ?? "-"} · {order.siswa?.kelas ?? "-"}</div>
+                                       <div className="order-card__name">{order.guru?.nama_guru ?? "-"}</div>
+                                       <div className="order-card__nip">NIP {order.guru?.nip ?? "-"}</div>
                                     </div>
                                     <span className={getStatusClass(order.status_order)}>{order.status_order}</span>
                                  </div>
@@ -334,8 +324,8 @@ export default function OrderSiswaPage() {
                               >
                                  <div className="order-card__top">
                                     <div>
-                                       <div className="order-card__name">{order.siswa?.nama_siswa ?? "-"}</div>
-                                       <div className="order-card__nis">NIS {order.siswa?.nis ?? "-"} · {order.siswa?.kelas ?? "-"}</div>
+                                       <div className="order-card__name">{order.guru?.nama_guru ?? "-"}</div>
+                                       <div className="order-card__nip">NIP {order.guru?.nip ?? "-"}</div>
                                     </div>
                                     <span className={getStatusClass(order.status_order)}>{order.status_order}</span>
                                  </div>
@@ -353,14 +343,12 @@ export default function OrderSiswaPage() {
                </section>
 
                {selectedOrder && (
-                  <div className="order-siswa-modal-overlay" onClick={closeOrderModal}>
-                     <div className="order-siswa-modal" onClick={(event) => event.stopPropagation()}>
+                  <div className="order-guru-modal-overlay" onClick={closeOrderModal}>
+                     <div className="order-guru-modal" onClick={(event) => event.stopPropagation()}>
                         <div className="modal-header">
                            <div>
                               <div className="modal-title">Detail Order</div>
-                              <div className="modal-subtitle">
-                                 {selectedOrder.siswa?.nama_siswa ?? "-"} • NIS {selectedOrder.siswa?.nis ?? "-"}
-                              </div>
+                              <div className="modal-subtitle">{selectedOrder.guru?.nama_guru ?? "-"} • NIP {selectedOrder.guru?.nip ?? "-"}</div>
                            </div>
                            <button type="button" className="modal-close" onClick={closeOrderModal} aria-label="Tutup detail order">
                               ×
@@ -370,16 +358,12 @@ export default function OrderSiswaPage() {
                         <div className="detail-block">
                            <div className="detail-grid">
                               <div className="detail-item">
-                                 <div className="detail-label">NIS</div>
-                                 <div className="detail-value">{selectedOrder.siswa?.nis ?? "-"}</div>
+                                 <div className="detail-label">NIP</div>
+                                 <div className="detail-value">{selectedOrder.guru?.nip ?? "-"}</div>
                               </div>
                               <div className="detail-item">
                                  <div className="detail-label">Nama</div>
-                                 <div className="detail-value">{selectedOrder.siswa?.nama_siswa ?? "-"}</div>
-                              </div>
-                              <div className="detail-item">
-                                 <div className="detail-label">Kelas</div>
-                                 <div className="detail-value">{selectedOrder.siswa?.kelas ?? "-"}</div>
+                                 <div className="detail-value">{selectedOrder.guru?.nama_guru ?? "-"}</div>
                               </div>
                               <div className="detail-item">
                                  <div className="detail-label">Metode</div>
@@ -425,7 +409,7 @@ export default function OrderSiswaPage() {
                                     <tbody>
                                        {orderItems.map((item) => (
                                           <tr key={item.id}>
-                                             <td>{item.produk?.nama_produk ?? `Produk ${item.produk_id}`}</td>
+                                             <td>{item.produk?.nama_produk ?? "-"}</td>
                                              <td>{item.jumlah}</td>
                                              <td>Rp {Number(item.harga_satuan ?? 0).toLocaleString()}</td>
                                              <td>Rp {Number((item.jumlah || 0) * (item.harga_satuan || 0)).toLocaleString()}</td>

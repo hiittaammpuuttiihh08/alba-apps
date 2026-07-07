@@ -1,4 +1,3 @@
-.order-siswa-page,
 .order-guru-page {
    display: flex;
    flex-direction: column;
@@ -21,8 +20,6 @@
 .page-header p {
    color: #64748b;
    margin-top: 0.35rem;
-   font-size: 0.95rem;
-   font-weight: 400;
 }
 
 .page-message {
@@ -40,7 +37,6 @@
    color: #b91c1c;
 }
 
-.order-siswa-summary,
 .order-guru-summary {
    display: grid;
    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -94,7 +90,6 @@
    color: #64748b;
 }
 
-.order-siswa-list-panel,
 .order-guru-list-panel {
    background: #fff;
    border: 1px solid #e2e8f0;
@@ -170,7 +165,7 @@
    border: 1px solid #eef2ff;
    border-radius: 12px;
    padding: 1rem 1.1rem;
-   background: #fff;
+   background: #ffffff;
    cursor: pointer;
    transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
    display: flex;
@@ -201,8 +196,7 @@
    font-size: 0.95rem;
 }
 
-.order-card__nip,
-.order-card__nis {
+.order-card__nip {
    font-size: 0.8rem;
    color: #64748b;
 }
@@ -220,7 +214,6 @@
    gap: 0.6rem;
    color: #64748b;
    font-size: 0.82rem;
-   font-weight: 500;
 }
 
 .order-card__badge,
@@ -258,12 +251,6 @@
 .order-card__chip--hutang {
    background: #f3e8ff;
    color: #7c3aed;
-}
-
-.order-card__status {
-   font-size: 0.82rem;
-   font-weight: 500;
-   color: #475569;
 }
 
 .order-card-empty {
@@ -366,7 +353,6 @@
    flex-wrap: wrap;
 }
 
-.order-siswa-modal-overlay,
 .order-guru-modal-overlay {
    position: fixed;
    inset: 0;
@@ -378,7 +364,6 @@
    z-index: 1000;
 }
 
-.order-siswa-modal,
 .order-guru-modal {
    width: min(900px, 100%);
    max-height: 90vh;
@@ -423,11 +408,5 @@
 
    .detail-grid {
       grid-template-columns: 1fr;
-   }
-
-   .order-card__top,
-   .order-card__meta {
-      flex-direction: column;
-      align-items: flex-start;
    }
 }
