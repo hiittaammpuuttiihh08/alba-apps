@@ -1,10 +1,33 @@
-Struktur database saat ini
+
+
+-- 0. DROP SEMUA TABEL (urutan sesuai foreign key dependencies)
+DROP TABLE IF EXISTS detail_order_guru CASCADE;
+DROP TABLE IF EXISTS detail_order_siswa CASCADE;
+DROP TABLE IF EXISTS detail_transaksi CASCADE;
+DROP TABLE IF EXISTS topup_saldo_guru CASCADE;
+DROP TABLE IF EXISTS topup_saldo CASCADE;
+DROP TABLE IF EXISTS order_guru CASCADE;
+DROP TABLE IF EXISTS order_siswa CASCADE;
+DROP TABLE IF EXISTS transaksi CASCADE;
+DROP TABLE IF EXISTS produk CASCADE;
+DROP TABLE IF EXISTS guru CASCADE;
+DROP TABLE IF EXISTS siswa CASCADE;
 
 -- 1. MEMBUAT TABEL SISWA
 CREATE TABLE siswa (
     nis INT PRIMARY KEY,
     nama_siswa TEXT NOT NULL,
     kelas TEXT NOT NULL,
+    password TEXT NOT NULL,
+    total_hutang INT DEFAULT 0 CHECK (total_hutang >= 0),
+    saldo INT DEFAULT 0 CHECK (saldo >= 0)
+);
+
+-- 1B. MEMBUAT TABEL GURU
+CREATE TABLE guru (
+    nip INT PRIMARY KEY,
+    nama_guru TEXT NOT NULL,
+    bidang_studi TEXT NOT NULL,
     password TEXT NOT NULL,
     total_hutang INT DEFAULT 0 CHECK (total_hutang >= 0),
     saldo INT DEFAULT 0 CHECK (saldo >= 0)
@@ -67,11 +90,41 @@ CREATE TABLE detail_order_siswa (
     harga_satuan INT NOT NULL CHECK (harga_satuan >= 0)
 );
 
+-- 7B. MEMBUAT TABEL ORDER GURU
+CREATE TABLE order_guru (
+    id TEXT PRIMARY KEY,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    nip_guru INT REFERENCES guru(nip) ON DELETE SET NULL,
+    total_harga INT NOT NULL CHECK (total_harga >= 0),
+    metode_pembayaran TEXT NOT NULL CHECK (metode_pembayaran IN ('Saldo', 'Hutang')),
+    status_order TEXT NOT NULL CHECK (status_order IN ('Menunggu', 'Dikonfirmasi', 'Ditolak')),
+    status_pembayaran TEXT NOT NULL CHECK (status_pembayaran IN ('Lunas', 'Belum Lunas')),
+    keterangan TEXT
+);
+
+-- 7C. MEMBUAT TABEL DETAIL ORDER GURU
+CREATE TABLE detail_order_guru (
+    id SERIAL PRIMARY KEY,
+    order_id TEXT REFERENCES order_guru(id) ON DELETE CASCADE,
+    produk_id INT REFERENCES produk(id) ON DELETE SET NULL,
+    jumlah INT NOT NULL CHECK (jumlah > 0),
+    harga_satuan INT NOT NULL CHECK (harga_satuan >= 0)
+);
+
+-- 7D. MEMBUAT TABEL TOPUP SALDO GURU
+CREATE TABLE topup_saldo_guru (
+    id SERIAL PRIMARY KEY,
+    nip_guru INT REFERENCES guru(nip) ON DELETE CASCADE,
+    jumlah INT NOT NULL CHECK (jumlah > 0),
+    metode TEXT NOT NULL,
+    keterangan TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- 8. TRUNCATE SEMUA DATA DAN INSERT DUMMY DATA
 -- Hati-hati: pastikan ini dijalankan di environment development atau test.
-BEGIN;
 
-TRUNCATE detail_order_siswa, detail_transaksi, transaksi, order_siswa, topup_saldo, produk, siswa RESTART IDENTITY CASCADE;
+TRUNCATE detail_order_guru, detail_order_siswa, detail_transaksi, transaksi, order_guru, order_siswa, topup_saldo_guru, topup_saldo, produk, guru, siswa RESTART IDENTITY CASCADE;
 
 INSERT INTO siswa (nis, nama_siswa, kelas, password, total_hutang, saldo) VALUES
 (1001, 'Andi Santoso', '10A', 'password123', 15000, 25000),
@@ -94,6 +147,16 @@ INSERT INTO siswa (nis, nama_siswa, kelas, password, total_hutang, saldo) VALUES
 (1018, 'Rian Saputra', '12C', 'password123', 18000, 9000),
 (1019, 'Sari Maharani', '10D', 'password123', 0, 35000),
 (1020, 'Tono Wijaya', '10D', 'password123', 3000, 17000);
+
+INSERT INTO guru (nip, nama_guru, bidang_studi, password, total_hutang, saldo) VALUES
+(2001, 'Dr. Ahmad Suryanto', 'Matematika', 'guru123', 0, 50000),
+(2002, 'Ibu Siti Nurhaliza', 'Bahasa Indonesia', 'guru123', 8000, 35000),
+(2003, 'Pak Budi Kusuma', 'Fisika', 'guru123', 0, 42000),
+(2004, 'Ibu Eka Wijaya', 'Kimia', 'guru123', 10000, 28000),
+(2005, 'Pak Rendra Mustafa', 'Bahasa Inggris', 'guru123', 0, 55000),
+(2006, 'Ibu Maya Puspita', 'Biologi', 'guru123', 5000, 32000),
+(2007, 'Pak Hari Nugroho', 'Sejarah', 'guru123', 0, 38000),
+(2008, 'Ibu Dewi Lestari', 'Ekonomi', 'guru123', 15000, 25000);
 
 INSERT INTO produk (nama_produk, harga, stok) VALUES
 ('Roti Coklat', 5000, 30),
@@ -247,5 +310,47 @@ INSERT INTO detail_order_siswa (order_id, produk_id, jumlah, harga_satuan) VALUE
 ('order_1020', 2, 2, 3000),
 ('order_1020', 20, 1, 1500);
 
-COMMIT;
+INSERT INTO topup_saldo_guru (nip_guru, jumlah, metode, keterangan, created_at) VALUES
+(2001, 30000, 'Transfer', 'Top-up saldo awal', NOW() - INTERVAL '10 days'),
+(2002, 20000, 'Tunai', 'Top-up untuk kebutuhan', NOW() - INTERVAL '8 days'),
+(2003, 25000, 'Transfer', 'Top-up saldo kantin', NOW() - INTERVAL '7 days'),
+(2004, 15000, 'Tunai', 'Top-up tambahan', NOW() - INTERVAL '6 days'),
+(2005, 35000, 'Transfer', 'Top-up awal minggu', NOW() - INTERVAL '5 days'),
+(2006, 18000, 'Tunai', 'Top-up makan', NOW() - INTERVAL '4 days'),
+(2007, 22000, 'Transfer', 'Top-up harian', NOW() - INTERVAL '3 days'),
+(2008, 12000, 'Tunai', 'Top-up cadangan', NOW() - INTERVAL '2 days');
+
+INSERT INTO order_guru (id, nip_guru, total_harga, metode_pembayaran, status_order, status_pembayaran, keterangan, created_at) VALUES
+('order_guru_2001', 2001, 18000, 'Saldo', 'Dikonfirmasi', 'Lunas', 'Order snack dan minuman', NOW() - INTERVAL '9 days'),
+('order_guru_2002', 2002, 15000, 'Hutang', 'Menunggu', 'Belum Lunas', 'Order makanan ringan', NOW() - INTERVAL '8 days'),
+('order_guru_2003', 2003, 20000, 'Saldo', 'Dikonfirmasi', 'Lunas', 'Order buku dan alat tulis', NOW() - INTERVAL '7 days'),
+('order_guru_2004', 2004, 12000, 'Hutang', 'Menunggu', 'Belum Lunas', 'Order perlengkapan', NOW() - INTERVAL '6 days'),
+('order_guru_2005', 2005, 22000, 'Saldo', 'Dikonfirmasi', 'Lunas', 'Order minuman dan roti', NOW() - INTERVAL '5 days'),
+('order_guru_2006', 2006, 14000, 'Saldo', 'Dikonfirmasi', 'Lunas', 'Order snack', NOW() - INTERVAL '4 days'),
+('order_guru_2007', 2007, 16000, 'Hutang', 'Menunggu', 'Belum Lunas', 'Order makanan', NOW() - INTERVAL '3 days'),
+('order_guru_2008', 2008, 11000, 'Saldo', 'Dikonfirmasi', 'Lunas', 'Order tissue dan permen', NOW() - INTERVAL '2 days');
+
+INSERT INTO detail_order_guru (order_id, produk_id, jumlah, harga_satuan) VALUES
+('order_guru_2001', 1, 2, 5000),
+('order_guru_2001', 3, 1, 7000),
+('order_guru_2001', 4, 1, 4500),
+('order_guru_2002', 2, 5, 3000),
+('order_guru_2002', 6, 1, 2500),
+('order_guru_2003', 5, 2, 8000),
+('order_guru_2003', 7, 1, 2000),
+('order_guru_2003', 10, 1, 12000),
+('order_guru_2004', 9, 2, 4000),
+('order_guru_2004', 11, 1, 10000),
+('order_guru_2005', 12, 2, 6000),
+('order_guru_2005', 13, 1, 2000),
+('order_guru_2005', 14, 1, 8000),
+('order_guru_2006', 15, 1, 6500),
+('order_guru_2006', 16, 1, 5000),
+('order_guru_2006', 2, 1, 3000),
+('order_guru_2007', 18, 1, 7000),
+('order_guru_2007', 8, 1, 1500),
+('order_guru_2007', 19, 1, 12000),
+('order_guru_2008', 11, 1, 10000),
+('order_guru_2008', 13, 1, 2000),
+('order_guru_2008', 20, 2, 1500);
 

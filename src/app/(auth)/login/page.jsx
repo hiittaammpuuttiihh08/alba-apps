@@ -22,6 +22,11 @@ function UnifiedLoginContent() {
          return;
       }
 
+      if (session.role === "guru") {
+         router.replace("/guru/dashboard");
+         return;
+      }
+
       if (session.role === "siswa") {
          router.replace("/dashboard");
          return;
@@ -48,8 +53,51 @@ function UnifiedLoginContent() {
          return;
       }
 
+      // Check if it's a guru login (NIP format: 4 digits starting with 2)
+      if (/^\d{4}$/.test(normalizedIdentifier) && normalizedIdentifier.startsWith("2")) {
+         try {
+            const { data, error } = await supabase
+               .from("guru")
+               .select("nip,nama_guru,bidang_studi,password")
+               .eq("nip", Number(normalizedIdentifier))
+               .maybeSingle();
+
+            if (error) {
+               throw error;
+            }
+
+            if (!data) {
+               alert("NIP guru tidak ditemukan.");
+               setLoading(false);
+               return;
+            }
+
+            if (String(data.password) !== String(password)) {
+               alert("Password salah.");
+               setLoading(false);
+               return;
+            }
+
+            saveAuthSession({
+               role: "guru",
+               nip: data.nip,
+               nama: data.nama_guru,
+               bidang_studi: data.bidang_studi,
+            });
+
+            router.replace("/guru/dashboard");
+            return;
+         } catch (error) {
+            console.error(error);
+            alert("Gagal memeriksa akun guru.");
+            setLoading(false);
+            return;
+         }
+      }
+
+      // Check if it's a siswa login (NIS format: 4 digits starting with 1)
       if (!/^\d+$/.test(normalizedIdentifier)) {
-         alert("Masukkan NIS siswa yang valid.");
+         alert("Masukkan NIS siswa atau NIP guru yang valid.");
          setLoading(false);
          return;
       }
@@ -97,15 +145,15 @@ function UnifiedLoginContent() {
       <main className="auth-page">
          <section className="auth-card">
             <h1>Masuk ke Koperasi</h1>
-            <p>Masukkan username admin atau NIS siswa untuk masuk ke sistem.</p>
+            <p>Masukkan username admin, NIS siswa, atau NIP guru untuk masuk ke sistem.</p>
 
             <form onSubmit={handleSubmit} className="auth-form">
                <label>
-                  Username / NIS
+                  Username / NIS / NIP
                   <input
                      value={identifier}
                      onChange={(e) => setIdentifier(e.target.value)}
-                     placeholder="admin atau 1001"
+                     placeholder="admin, 1001 (siswa), atau 2001 (guru)"
                      required
                   />
                </label>
