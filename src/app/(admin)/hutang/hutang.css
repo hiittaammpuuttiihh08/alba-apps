@@ -30,15 +30,35 @@
    flex-wrap: wrap;
 }
 
+.hutang-page__controls {
+   display: flex;
+   align-items: center;
+   gap: 12px;
+   width: 100%;
+   flex-wrap: wrap;
+}
+
+.hutang-page__type,
 .hutang-page__search {
-   width: min(360px, 100%);
    padding: 12px 14px;
    border: 1px solid #d1d5db;
    border-radius: 14px;
    font-size: 1rem;
    outline: none;
+   background: #fff;
+   color: #0f172a;
 }
 
+.hutang-page__type {
+   min-width: 200px;
+}
+
+.hutang-page__search {
+   flex: 1;
+   min-width: 220px;
+}
+
+.hutang-page__type:focus,
 .hutang-page__search:focus {
    border-color: #0ea5a4;
    box-shadow: 0 0 0 4px rgba(14, 165, 164, 0.12);
