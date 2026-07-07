@@ -274,6 +274,50 @@ button:disabled:hover,
   outline: none;
 }
 
+.react-select-container {
+  width: 100%;
+}
+
+.react-select__control {
+  width: 100%;
+  min-height: 3.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: none;
+}
+
+.react-select__control--is-focused {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary);
+}
+
+.react-select__value-container {
+  padding: 0.4rem 0.75rem;
+}
+
+.react-select__single-value,
+.react-select__placeholder,
+.react-select__input-container {
+  color: var(--text);
+  margin: 0;
+}
+
+.react-select__menu {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+}
+
+.react-select__option {
+  padding: 0.85rem 1rem;
+}
+
+.react-select__option--is-focused,
+.react-select__option--is-selected {
+  background: rgba(59, 130, 246, 0.08);
+}
+
 .table-responsive {
   width: 100%;
   overflow-x: auto;

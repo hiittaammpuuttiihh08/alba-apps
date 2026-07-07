@@ -1,13 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Select from "react-select";
 import { createClient } from "@/utils/supabase";
 
 const supabase = createClient();
 
 export default function AdminTopupSaldoPage() {
+   const [selectedType, setSelectedType] = useState("siswa");
    const [siswa, setSiswa] = useState([]);
+   const [guru, setGuru] = useState([]);
    const [selectedSiswa, setSelectedSiswa] = useState("");
+   const [selectedGuru, setSelectedGuru] = useState("");
    const [amount, setAmount] = useState("");
    const [method, setMethod] = useState("Tunai");
    const [note, setNote] = useState("");
@@ -15,6 +19,7 @@ export default function AdminTopupSaldoPage() {
 
    useEffect(() => {
       fetchSiswa();
+      fetchGuru();
    }, []);
 
    async function fetchSiswa() {
@@ -31,34 +36,70 @@ export default function AdminTopupSaldoPage() {
       setSiswa(data ?? []);
    }
 
+   async function fetchGuru() {
+      const { data, error } = await supabase
+         .from("guru")
+         .select("nip,nama_guru,bidang_studi,saldo")
+         .order("nip", { ascending: true });
+
+      if (error) {
+         console.error(error);
+         return;
+      }
+
+      setGuru(data ?? []);
+   }
+
    async function handleTopup(event) {
       event.preventDefault();
       const amountValue = Number(amount);
 
-      if (!selectedSiswa) return alert("Pilih siswa terlebih dahulu.");
       if (!amountValue || amountValue <= 0) return alert("Jumlah top-up harus lebih besar dari 0.");
+
+      const isSiswa = selectedType === "siswa";
+      const selectedId = isSiswa ? selectedSiswa : selectedGuru;
+      if (!selectedId) return alert(`Pilih ${isSiswa ? "siswa" : "guru"} terlebih dahulu.`);
 
       setLoading(true);
       try {
-         const student = siswa.find((item) => String(item.nis) === String(selectedSiswa));
-         if (!student) return alert("Siswa tidak ditemukan.");
+         if (isSiswa) {
+            const student = siswa.find((item) => String(item.nis) === String(selectedId));
+            if (!student) return alert("Siswa tidak ditemukan.");
 
-         const newSaldo = Number(student.saldo ?? 0) + amountValue;
-         const { error: updateError } = await supabase.from("siswa").update({ saldo: newSaldo }).eq("nis", selectedSiswa);
-         if (updateError) throw updateError;
+            const newSaldo = Number(student.saldo ?? 0) + amountValue;
+            const { error: updateError } = await supabase.from("siswa").update({ saldo: newSaldo }).eq("nis", selectedId);
+            if (updateError) throw updateError;
 
-         const { error: insertError } = await supabase.from("topup_saldo").insert({
-            nis_siswa: selectedSiswa,
-            jumlah: amountValue,
-            metode: method,
-            keterangan: note || null,
-         });
-         if (insertError) throw insertError;
+            const { error: insertError } = await supabase.from("topup_saldo").insert({
+               nis_siswa: selectedId,
+               jumlah: amountValue,
+               metode: method,
+               keterangan: note || null,
+            });
+            if (insertError) throw insertError;
+         } else {
+            const teacher = guru.find((item) => String(item.nip) === String(selectedId));
+            if (!teacher) return alert("Guru tidak ditemukan.");
+
+            const newSaldo = Number(teacher.saldo ?? 0) + amountValue;
+            const { error: updateError } = await supabase.from("guru").update({ saldo: newSaldo }).eq("nip", selectedId);
+            if (updateError) throw updateError;
+
+            const { error: insertError } = await supabase.from("topup_saldo_guru").insert({
+               nip_guru: selectedId,
+               jumlah: amountValue,
+               metode: method,
+               keterangan: note || null,
+            });
+            if (insertError) throw insertError;
+         }
 
          alert("Top-up saldo berhasil.");
          setAmount("");
          setNote("");
-         await fetchSiswa();
+         setSelectedSiswa("");
+         setSelectedGuru("");
+         await Promise.all([fetchSiswa(), fetchGuru()]);
       } catch (error) {
          console.error(error);
          alert("Gagal melakukan top-up saldo.");
@@ -71,21 +112,44 @@ export default function AdminTopupSaldoPage() {
       <div className="page-content">
          <div className="page-header">
             <h1>Top-Up Saldo</h1>
-            <p>Tambahkan saldo siswa tanpa mencampur dengan transaksi kasir.</p>
+            <p>Tambahkan saldo siswa atau guru tanpa mencampur dengan transaksi kasir.</p>
          </div>
 
          <form onSubmit={handleTopup} className="admin-form">
             <div className="form-row">
                <label>
-                  Pilih Siswa
-                  <select value={selectedSiswa} onChange={(e) => setSelectedSiswa(e.target.value)}>
-                     <option value="">-- Pilih --</option>
-                     {siswa.map((item) => (
-                        <option key={item.nis} value={item.nis}>
-                           {item.nis} - {item.nama_siswa} ({item.kelas}) - Saldo: Rp {Number(item.saldo ?? 0).toLocaleString()}
-                        </option>
-                     ))}
+                  Tipe Akun
+                  <select value={selectedType} onChange={(e) => setSelectedType(e.target.value)}>
+                     <option value="siswa">Siswa</option>
+                     <option value="guru">Guru</option>
                   </select>
+               </label>
+            </div>
+
+            <div className="form-row">
+               <label>
+                  Pilih {selectedType === "siswa" ? "Siswa" : "Guru"}
+                  <Select
+                     value={selectedType === "siswa" ? siswa.find((item) => String(item.nis) === String(selectedSiswa)) : guru.find((item) => String(item.nip) === String(selectedGuru)) || null}
+                     onChange={(value) => {
+                        if (selectedType === "siswa") {
+                           setSelectedSiswa(value?.value || "");
+                        } else {
+                           setSelectedGuru(value?.value || "");
+                        }
+                     }}
+                     options={(selectedType === "siswa" ? siswa : guru).map((item) => ({
+                        value: selectedType === "siswa" ? item.nis : item.nip,
+                        label:
+                           selectedType === "siswa"
+                              ? `${item.nis} - ${item.nama_siswa} (${item.kelas}) - Saldo: Rp ${Number(item.saldo ?? 0).toLocaleString()}`
+                              : `${item.nip} - ${item.nama_guru} (${item.bidang_studi ?? "-"}) - Saldo: Rp ${Number(item.saldo ?? 0).toLocaleString()}`,
+                     }))}
+                     placeholder="Cari dan pilih..."
+                     isClearable
+                     className="react-select-container"
+                     classNamePrefix="react-select"
+                  />
                </label>
             </div>
 
@@ -109,10 +173,10 @@ export default function AdminTopupSaldoPage() {
 
             <div className="form-row">
                <label>
-                  Keterangan untuk riwayat siswa
+                  Keterangan untuk riwayat
                   <input type="text" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Contoh: top-up awal, pembayaran tunai, transfer bank" />
                </label>
-               <p className="hint-text">Catatan ini akan muncul di riwayat saldo siswa agar lebih mudah dipahami.</p>
+               <p className="hint-text">Catatan ini akan muncul di riwayat saldo pengguna agar lebih mudah dipahami.</p>
             </div>
 
             <button type="submit" className="btn btn--primary" disabled={loading}>
